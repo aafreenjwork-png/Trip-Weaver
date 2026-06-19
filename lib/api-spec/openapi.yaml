@@ -1,15 +1,19 @@
 openapi: 3.1.0
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: AI Trip Customizer API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: trips
+    description: Trip management
+  - name: itineraries
+    description: Itinerary generation and management
+
 paths:
   /healthz:
     get:
@@ -24,6 +28,186 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /trips:
+    get:
+      operationId: listTrips
+      tags: [trips]
+      summary: List all trips
+      responses:
+        "200":
+          description: List of trips
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Trip"
+    post:
+      operationId: createTrip
+      tags: [trips]
+      summary: Create a new trip
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TripInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trip"
+
+  /trips/{id}:
+    get:
+      operationId: getTrip
+      tags: [trips]
+      summary: Get a trip by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Trip details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trip"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateTrip
+      tags: [trips]
+      summary: Update trip preferences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TripUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trip"
+    delete:
+      operationId: deleteTrip
+      tags: [trips]
+      summary: Delete a trip
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /trips/{id}/generate:
+    post:
+      operationId: generateItinerary
+      tags: [itineraries]
+      summary: Generate AI itinerary for a trip
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Generated itinerary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Itinerary"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /trips/{id}/itinerary:
+    get:
+      operationId: getItinerary
+      tags: [itineraries]
+      summary: Get the current itinerary for a trip
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Itinerary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Itinerary"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      operationId: updateItinerary
+      tags: [itineraries]
+      summary: Update itinerary (edit day/activity)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ItineraryUpdate"
+      responses:
+        "200":
+          description: Updated itinerary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Itinerary"
+
+  /trips/stats:
+    get:
+      operationId: getTripStats
+      tags: [trips]
+      summary: Get aggregate stats across all trips
+      responses:
+        "200":
+          description: Stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +218,303 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    TripInput:
+      type: object
+      required:
+        - destination
+        - startDate
+        - endDate
+        - budget
+        - travelStyle
+        - groupSize
+      properties:
+        destination:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        budget:
+          type: string
+          enum: [budget, moderate, luxury]
+        travelStyle:
+          type: string
+          enum: [adventure, cultural, relaxation, business, family, romantic]
+        interests:
+          type: array
+          items:
+            type: string
+        groupSize:
+          type: integer
+        constraints:
+          type: ["string", "null"]
+
+    TripUpdate:
+      type: object
+      properties:
+        destination:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        budget:
+          type: string
+          enum: [budget, moderate, luxury]
+        travelStyle:
+          type: string
+          enum: [adventure, cultural, relaxation, business, family, romantic]
+        interests:
+          type: array
+          items:
+            type: string
+        groupSize:
+          type: integer
+        constraints:
+          type: ["string", "null"]
+
+    Trip:
+      type: object
+      required:
+        - id
+        - destination
+        - startDate
+        - endDate
+        - budget
+        - travelStyle
+        - groupSize
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: integer
+        destination:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        budget:
+          type: string
+        travelStyle:
+          type: string
+        interests:
+          type: array
+          items:
+            type: string
+        groupSize:
+          type: integer
+        constraints:
+          type: ["string", "null"]
+        hasItinerary:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    DaySchedule:
+      type: object
+      required:
+        - day
+        - date
+        - activities
+        - estimatedCost
+      properties:
+        day:
+          type: integer
+        date:
+          type: string
+        activities:
+          type: array
+          items:
+            $ref: "#/components/schemas/Activity"
+        estimatedCost:
+          type: number
+        notes:
+          type: ["string", "null"]
+
+    Activity:
+      type: object
+      required:
+        - time
+        - title
+        - description
+        - type
+        - estimatedCost
+        - duration
+      properties:
+        time:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+          enum: [attraction, restaurant, hotel, transport, activity, shopping]
+        estimatedCost:
+          type: number
+        duration:
+          type: string
+        address:
+          type: ["string", "null"]
+        tips:
+          type: ["string", "null"]
+
+    Itinerary:
+      type: object
+      required:
+        - id
+        - tripId
+        - days
+        - totalEstimatedCost
+        - hotels
+        - restaurants
+        - packingSuggestions
+        - transportationPlan
+        - alternativeOptions
+        - generatedAt
+      properties:
+        id:
+          type: integer
+        tripId:
+          type: integer
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/DaySchedule"
+        totalEstimatedCost:
+          type: number
+        hotels:
+          type: array
+          items:
+            $ref: "#/components/schemas/HotelRecommendation"
+        restaurants:
+          type: array
+          items:
+            $ref: "#/components/schemas/RestaurantRecommendation"
+        packingSuggestions:
+          type: array
+          items:
+            type: string
+        transportationPlan:
+          type: string
+        alternativeOptions:
+          type: array
+          items:
+            $ref: "#/components/schemas/AlternativeOption"
+        generatedAt:
+          type: string
+
+    HotelRecommendation:
+      type: object
+      required:
+        - name
+        - description
+        - priceRange
+        - rating
+        - highlights
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        priceRange:
+          type: string
+        rating:
+          type: number
+        highlights:
+          type: array
+          items:
+            type: string
+        address:
+          type: ["string", "null"]
+
+    RestaurantRecommendation:
+      type: object
+      required:
+        - name
+        - cuisine
+        - description
+        - priceRange
+        - mustTry
+      properties:
+        name:
+          type: string
+        cuisine:
+          type: string
+        description:
+          type: string
+        priceRange:
+          type: string
+        mustTry:
+          type: array
+          items:
+            type: string
+        address:
+          type: ["string", "null"]
+
+    AlternativeOption:
+      type: object
+      required:
+        - title
+        - description
+        - reason
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        reason:
+          type: string
+
+    ItineraryUpdate:
+      type: object
+      properties:
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/DaySchedule"
+        notes:
+          type: ["string", "null"]
+
+    TripStats:
+      type: object
+      required:
+        - totalTrips
+        - topDestinations
+        - avgGroupSize
+        - budgetBreakdown
+        - styleBreakdown
+      properties:
+        totalTrips:
+          type: integer
+        topDestinations:
+          type: array
+          items:
+            type: object
+            required: [destination, count]
+            properties:
+              destination:
+                type: string
+              count:
+                type: integer
+        avgGroupSize:
+          type: number
+        budgetBreakdown:
+          type: object
+          additionalProperties:
+            type: integer
+        styleBreakdown:
+          type: object
+          additionalProperties:
+            type: integer
