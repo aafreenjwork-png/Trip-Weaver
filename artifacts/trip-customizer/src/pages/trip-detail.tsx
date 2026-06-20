@@ -238,7 +238,7 @@ export default function TripDetail() {
               <CardContent className="p-8">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-2xl font-serif font-semibold flex items-center gap-3">
-                    <FileText className="w-6 h-6 text-primary" /> Core Parameters
+                    <FileText className="w-6 h-6 text-primary" /> Details
                   </h3>
                   {!editing ? (
                     <Button
