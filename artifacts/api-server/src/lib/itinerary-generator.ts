@@ -194,6 +194,22 @@ function getCostMultiplier(budget: string): number {
   }
 }
 
+function getCurrencySymbol(currency: string): string {
+  const symbols: Record<string, string> = {
+    USD: "$", EUR: "€", GBP: "£", JPY: "¥", AUD: "A$", CAD: "C$",
+    CHF: "CHF ", SGD: "S$", HKD: "HK$", INR: "₹", BRL: "R$",
+    MXN: "MX$", AED: "AED ", THB: "฿", IDR: "Rp ", KRW: "₩",
+    NZD: "NZ$", ZAR: "R", MYR: "RM ", PHP: "₱",
+  };
+  return symbols[currency] ?? `${currency} `;
+}
+
+function starsToTier(hotelStars: number): string {
+  if (hotelStars <= 2) return "budget";
+  if (hotelStars === 3) return "moderate";
+  return "luxury";
+}
+
 function getTravelStyleActivities(style: string, interests: string[]): string[] {
   const baseActivities: Record<string, string[]> = {
     adventure: ["Rock climbing session", "White-water rafting", "Zip-line canopy tour", "Mountain biking trail", "Paragliding experience"],
@@ -406,26 +422,36 @@ export function generateItineraryData(trip: Trip): ItineraryData {
 
   // Hotels
   const hotelsByTier = destData.hotels;
-  const primaryHotelTier = trip.budget === "luxury" ? "luxury" : trip.budget === "moderate" ? "moderate" : "budget";
+  const sym = getCurrencySymbol(trip.currency ?? "USD");
+  const hotelStars = trip.hotelStars ?? 3;
+  const primaryHotelTier = starsToTier(hotelStars);
   const primaryHotel = hotelsByTier.find(h => h.tier === primaryHotelTier) ?? hotelsByTier[0];
   const altHotel = hotelsByTier.find(h => h.tier !== primaryHotelTier && h.tier !== "budget") ?? hotelsByTier[1];
 
   const priceRangeByTier: Record<string, string> = {
-    luxury: "$450-800/night",
-    moderate: "$150-280/night",
-    budget: "$35-90/night",
+    luxury: `${sym}450–800/night`,
+    moderate: `${sym}150–280/night`,
+    budget: `${sym}35–90/night`,
   };
+
+  const starLabel = "★".repeat(hotelStars) + "☆".repeat(5 - hotelStars);
+  const tierHighlight = primaryHotelTier === "luxury"
+    ? "Rooftop pool, spa & fine dining"
+    : primaryHotelTier === "moderate"
+    ? "Complimentary breakfast & fitness center"
+    : "Social common areas & free city maps";
 
   const hotels: HotelRecommendation[] = [
     {
       name: primaryHotel.name,
       description: primaryHotel.description,
-      priceRange: priceRangeByTier[primaryHotel.tier] ?? "$100-200/night",
-      rating: primaryHotel.tier === "luxury" ? 4.9 : primaryHotel.tier === "moderate" ? 4.4 : 4.1,
+      priceRange: priceRangeByTier[primaryHotel.tier] ?? `${sym}100–200/night`,
+      rating: primaryHotelTier === "luxury" ? 4.9 : primaryHotelTier === "moderate" ? 4.4 : 4.1,
       highlights: [
+        `${starLabel} — ${hotelStars}-star accommodation`,
         "Prime location near major attractions",
         "Excellent guest reviews",
-        `${trip.budget === "luxury" ? "Rooftop pool, spa & fine dining" : trip.budget === "moderate" ? "Complimentary breakfast & fitness center" : "Social common areas & free city maps"}`,
+        tierHighlight,
         "Flexible check-in times",
       ],
       address: `Central ${trip.destination}`,
@@ -436,7 +462,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
     hotels.push({
       name: altHotel.name,
       description: altHotel.description,
-      priceRange: priceRangeByTier[altHotel.tier] ?? "$120-250/night",
+      priceRange: priceRangeByTier[altHotel.tier] ?? `${sym}120–250/night`,
       rating: altHotel.tier === "luxury" ? 4.8 : 4.3,
       highlights: ["Alternative option with excellent value", "Popular with returning visitors"],
       address: null,

@@ -10,11 +10,34 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, ArrowLeft, Loader2, MapPin, Calendar, Users } from "lucide-react";
+import { ArrowRight, ArrowLeft, Loader2, MapPin, Calendar, Users, Star } from "lucide-react";
 import { toast } from "sonner";
 
 const BUDGET_OPTIONS = ["budget", "moderate", "luxury"] as const;
 const STYLE_OPTIONS = ["adventure", "cultural", "relaxation", "business", "family", "romantic"] as const;
+
+const CURRENCIES = [
+  { code: "USD", label: "USD – US Dollar" },
+  { code: "EUR", label: "EUR – Euro" },
+  { code: "GBP", label: "GBP – British Pound" },
+  { code: "JPY", label: "JPY – Japanese Yen" },
+  { code: "AUD", label: "AUD – Australian Dollar" },
+  { code: "CAD", label: "CAD – Canadian Dollar" },
+  { code: "CHF", label: "CHF – Swiss Franc" },
+  { code: "SGD", label: "SGD – Singapore Dollar" },
+  { code: "HKD", label: "HKD – Hong Kong Dollar" },
+  { code: "INR", label: "INR – Indian Rupee" },
+  { code: "BRL", label: "BRL – Brazilian Real" },
+  { code: "MXN", label: "MXN – Mexican Peso" },
+  { code: "AED", label: "AED – UAE Dirham" },
+  { code: "THB", label: "THB – Thai Baht" },
+  { code: "IDR", label: "IDR – Indonesian Rupiah" },
+  { code: "KRW", label: "KRW – South Korean Won" },
+  { code: "NZD", label: "NZD – New Zealand Dollar" },
+  { code: "ZAR", label: "ZAR – South African Rand" },
+  { code: "MYR", label: "MYR – Malaysian Ringgit" },
+  { code: "PHP", label: "PHP – Philippine Peso" },
+];
 
 const formSchema = z.object({
   destination: z.string().min(2, "Destination is required"),
@@ -25,6 +48,8 @@ const formSchema = z.object({
   interests: z.array(z.string()).min(1, "Select at least one interest"),
   groupSize: z.coerce.number().min(1, "Must be at least 1"),
   constraints: z.string().optional(),
+  currency: z.string().default("USD"),
+  hotelStars: z.coerce.number().min(1).max(5).default(3),
 });
 
 const INTERESTS = ["food", "history", "nature", "art", "nightlife", "shopping", "sports", "wellness"];
@@ -46,6 +71,8 @@ export default function NewTrip() {
       interests: [],
       groupSize: 2,
       constraints: "",
+      currency: "USD",
+      hotelStars: 3,
     },
   });
 
@@ -73,8 +100,8 @@ export default function NewTrip() {
         <div className="mb-12">
           <div className="flex items-center gap-2 mb-4">
             {Array.from({ length: totalSteps }).map((_, i) => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${
                   i + 1 <= step ? 'bg-primary' : 'bg-muted'
                 }`}
@@ -96,7 +123,7 @@ export default function NewTrip() {
           <CardContent className="p-8">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                
+
                 {/* Step 1: Destination & Dates */}
                 <div className={step === 1 ? "block animate-in fade-in slide-in-from-right-8" : "hidden"}>
                   <div className="space-y-6">
@@ -170,8 +197,8 @@ export default function NewTrip() {
                                   key={budget}
                                   onClick={() => field.onChange(budget)}
                                   className={`p-4 rounded-xl border-2 transition-all capitalize font-medium ${
-                                    field.value === budget 
-                                      ? 'border-primary bg-primary/5 text-primary' 
+                                    field.value === budget
+                                      ? 'border-primary bg-primary/5 text-primary'
                                       : 'border-muted bg-transparent text-muted-foreground hover:border-primary/50'
                                   }`}
                                 >
@@ -199,12 +226,47 @@ export default function NewTrip() {
                                   key={style}
                                   onClick={() => field.onChange(style)}
                                   className={`p-4 rounded-xl border-2 transition-all capitalize font-medium ${
-                                    field.value === style 
-                                      ? 'border-secondary bg-secondary/5 text-secondary' 
+                                    field.value === style
+                                      ? 'border-secondary bg-secondary/5 text-secondary'
                                       : 'border-muted bg-transparent text-muted-foreground hover:border-secondary/50'
                                   }`}
                                 >
                                   {style}
+                                </button>
+                              ))}
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="hotelStars"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-lg font-serif">Hotel Rating</FormLabel>
+                          <FormDescription>Select your preferred accommodation standard.</FormDescription>
+                          <FormControl>
+                            <div className="flex gap-3 mt-2">
+                              {[1, 2, 3, 4, 5].map(star => (
+                                <button
+                                  type="button"
+                                  key={star}
+                                  onClick={() => field.onChange(star)}
+                                  className={`flex-1 flex flex-col items-center gap-1.5 py-4 rounded-xl border-2 transition-all ${
+                                    field.value === star
+                                      ? 'border-accent bg-accent/10 text-accent-foreground'
+                                      : 'border-muted text-muted-foreground hover:border-accent/40'
+                                  }`}
+                                >
+                                  <div className="flex">
+                                    {Array.from({ length: star }).map((_, i) => (
+                                      <Star key={i} className={`w-3.5 h-3.5 ${field.value === star ? 'fill-accent text-accent' : 'fill-muted-foreground/30 text-muted-foreground/30'}`} />
+                                    ))}
+                                  </div>
+                                  <span className="text-xs font-medium">{star}★</span>
                                 </button>
                               ))}
                             </div>
@@ -241,8 +303,8 @@ export default function NewTrip() {
                                     }
                                   }}
                                   className={`px-6 py-3 rounded-full border-2 transition-all capitalize font-medium ${
-                                    isSelected 
-                                      ? 'border-accent bg-accent/20 text-accent-foreground' 
+                                    isSelected
+                                      ? 'border-accent bg-accent/20 text-accent-foreground'
                                       : 'border-muted bg-transparent text-muted-foreground hover:border-accent/50'
                                   }`}
                                 >
@@ -277,7 +339,33 @@ export default function NewTrip() {
                         </FormItem>
                       )}
                     />
-                    
+
+                    <FormField
+                      control={form.control}
+                      name="currency"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-lg font-serif">Preferred Currency</FormLabel>
+                          <FormDescription>Cost estimates in the itinerary will use this currency.</FormDescription>
+                          <FormControl>
+                            <div className="relative mt-1">
+                              <select
+                                value={field.value}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-full py-4 px-4 rounded-xl border border-input bg-background text-foreground text-base focus:outline-none focus:ring-2 focus:ring-ring appearance-none cursor-pointer"
+                              >
+                                {CURRENCIES.map(c => (
+                                  <option key={c.code} value={c.code}>{c.label}</option>
+                                ))}
+                              </select>
+                              <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">▾</div>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
                     <FormField
                       control={form.control}
                       name="constraints"
@@ -286,10 +374,10 @@ export default function NewTrip() {
                           <FormLabel className="text-lg font-serif">Special Notes or Constraints</FormLabel>
                           <FormDescription>Dietary restrictions, mobility issues, specific requests.</FormDescription>
                           <FormControl>
-                            <Textarea 
-                              placeholder="e.g. Vegan, prefer avoiding early mornings, must visit a contemporary art museum." 
+                            <Textarea
+                              placeholder="e.g. Vegan, prefer avoiding early mornings, must visit a contemporary art museum."
                               className="min-h-[120px] rounded-xl text-lg resize-none p-4"
-                              {...field} 
+                              {...field}
                             />
                           </FormControl>
                           <FormMessage />
@@ -306,14 +394,14 @@ export default function NewTrip() {
                       <ArrowLeft className="w-4 h-4 mr-2" /> Back
                     </Button>
                   ) : <div></div>}
-                  
+
                   {step < totalSteps ? (
                     <Button type="button" onClick={nextStep} className="rounded-full px-8 py-6 text-base bg-primary hover:bg-primary/90">
                       Continue <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   ) : (
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={createTrip.isPending}
                       className="rounded-full px-8 py-6 text-base bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-lg"
                     >

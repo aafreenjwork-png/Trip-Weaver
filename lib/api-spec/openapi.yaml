@@ -256,6 +256,12 @@ components:
           type: integer
         constraints:
           type: ["string", "null"]
+        currency:
+          type: string
+        hotelStars:
+          type: integer
+          minimum: 1
+          maximum: 5
 
     TripUpdate:
       type: object
@@ -280,6 +286,12 @@ components:
           type: integer
         constraints:
           type: ["string", "null"]
+        currency:
+          type: string
+        hotelStars:
+          type: integer
+          minimum: 1
+          maximum: 5
 
     Trip:
       type: object
@@ -291,6 +303,8 @@ components:
         - budget
         - travelStyle
         - groupSize
+        - currency
+        - hotelStars
         - createdAt
         - updatedAt
       properties:
@@ -314,6 +328,10 @@ components:
           type: integer
         constraints:
           type: ["string", "null"]
+        currency:
+          type: string
+        hotelStars:
+          type: integer
         hasItinerary:
           type: boolean
         createdAt:

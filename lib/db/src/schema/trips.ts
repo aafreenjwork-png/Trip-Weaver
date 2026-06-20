@@ -12,6 +12,8 @@ export const tripsTable = pgTable("trips", {
   interests: jsonb("interests").$type<string[]>().notNull().default([]),
   groupSize: integer("group_size").notNull().default(1),
   constraints: text("constraints"),
+  currency: text("currency").notNull().default("USD"),
+  hotelStars: integer("hotel_stars").notNull().default(3),
   hasItinerary: boolean("has_itinerary").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

@@ -30,6 +30,8 @@ export const ListTripsResponseItem = zod.object({
   "interests": zod.array(zod.string()).optional(),
   "groupSize": zod.number(),
   "constraints": zod.string().nullish(),
+  "currency": zod.string(),
+  "hotelStars": zod.number(),
   "hasItinerary": zod.boolean().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -40,6 +42,10 @@ export const ListTripsResponse = zod.array(ListTripsResponseItem)
 /**
  * @summary Create a new trip
  */
+export const createTripBodyHotelStarsMax = 5;
+
+
+
 export const CreateTripBody = zod.object({
   "destination": zod.string(),
   "startDate": zod.string(),
@@ -48,7 +54,9 @@ export const CreateTripBody = zod.object({
   "travelStyle": zod.enum(['adventure', 'cultural', 'relaxation', 'business', 'family', 'romantic']),
   "interests": zod.array(zod.string()).optional(),
   "groupSize": zod.number(),
-  "constraints": zod.string().nullish()
+  "constraints": zod.string().nullish(),
+  "currency": zod.string().optional(),
+  "hotelStars": zod.number().min(1).max(createTripBodyHotelStarsMax).optional()
 })
 
 
@@ -69,6 +77,8 @@ export const GetTripResponse = zod.object({
   "interests": zod.array(zod.string()).optional(),
   "groupSize": zod.number(),
   "constraints": zod.string().nullish(),
+  "currency": zod.string(),
+  "hotelStars": zod.number(),
   "hasItinerary": zod.boolean().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()
@@ -82,6 +92,10 @@ export const UpdateTripParams = zod.object({
   "id": zod.coerce.number()
 })
 
+export const updateTripBodyHotelStarsMax = 5;
+
+
+
 export const UpdateTripBody = zod.object({
   "destination": zod.string().optional(),
   "startDate": zod.string().optional(),
@@ -90,7 +104,9 @@ export const UpdateTripBody = zod.object({
   "travelStyle": zod.enum(['adventure', 'cultural', 'relaxation', 'business', 'family', 'romantic']).optional(),
   "interests": zod.array(zod.string()).optional(),
   "groupSize": zod.number().optional(),
-  "constraints": zod.string().nullish()
+  "constraints": zod.string().nullish(),
+  "currency": zod.string().optional(),
+  "hotelStars": zod.number().min(1).max(updateTripBodyHotelStarsMax).optional()
 })
 
 export const UpdateTripResponse = zod.object({
@@ -103,6 +119,8 @@ export const UpdateTripResponse = zod.object({
   "interests": zod.array(zod.string()).optional(),
   "groupSize": zod.number(),
   "constraints": zod.string().nullish(),
+  "currency": zod.string(),
+  "hotelStars": zod.number(),
   "hasItinerary": zod.boolean().optional(),
   "createdAt": zod.string(),
   "updatedAt": zod.string()

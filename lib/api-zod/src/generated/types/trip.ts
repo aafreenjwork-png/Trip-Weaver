@@ -17,6 +17,8 @@ export interface Trip {
   groupSize: number;
   /** @nullable */
   constraints?: string | null;
+  currency: string;
+  hotelStars: number;
   hasItinerary?: boolean;
   createdAt: string;
   updatedAt: string;

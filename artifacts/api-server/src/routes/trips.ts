@@ -75,6 +75,8 @@ router.post("/trips", async (req, res) => {
       interests: (parsed.data.interests as string[]) ?? [],
       groupSize: parsed.data.groupSize,
       constraints: parsed.data.constraints ?? null,
+      currency: parsed.data.currency ?? "USD",
+      hotelStars: parsed.data.hotelStars ?? 3,
     }).returning();
     res.status(201).json(trip);
   } catch (err) {
@@ -122,6 +124,8 @@ router.patch("/trips/:id", async (req, res) => {
     if (b.interests !== undefined) updates.interests = b.interests;
     if (b.groupSize !== undefined) updates.groupSize = b.groupSize;
     if (b.constraints !== undefined) updates.constraints = b.constraints;
+    if (b.currency !== undefined) updates.currency = b.currency;
+    if (b.hotelStars !== undefined) updates.hotelStars = b.hotelStars;
 
     const [trip] = await db
       .update(tripsTable)

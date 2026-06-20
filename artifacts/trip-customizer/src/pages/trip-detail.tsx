@@ -10,7 +10,7 @@ import { useRoute, Link, useLocation } from "wouter";
 import { format } from "date-fns";
 import {
   MapPin, Calendar, Users, Wallet, Compass, Heart,
-  Loader2, FileText, ArrowRight, Plane, Sparkles, Pencil, X, Check,
+  Loader2, FileText, ArrowRight, Plane, Sparkles, Pencil, X, Check, Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,28 @@ import { toast } from "sonner";
 const BUDGET_OPTIONS = ["budget", "moderate", "luxury"] as const;
 const STYLE_OPTIONS = ["adventure", "cultural", "relaxation", "business", "family", "romantic"] as const;
 const INTEREST_OPTIONS = ["art", "food", "history", "nature", "nightlife", "shopping", "sports", "technology", "wellness", "architecture"];
+const CURRENCIES = [
+  { code: "USD", label: "USD – US Dollar" },
+  { code: "EUR", label: "EUR – Euro" },
+  { code: "GBP", label: "GBP – British Pound" },
+  { code: "JPY", label: "JPY – Japanese Yen" },
+  { code: "AUD", label: "AUD – Australian Dollar" },
+  { code: "CAD", label: "CAD – Canadian Dollar" },
+  { code: "CHF", label: "CHF – Swiss Franc" },
+  { code: "SGD", label: "SGD – Singapore Dollar" },
+  { code: "HKD", label: "HKD – Hong Kong Dollar" },
+  { code: "INR", label: "INR – Indian Rupee" },
+  { code: "BRL", label: "BRL – Brazilian Real" },
+  { code: "MXN", label: "MXN – Mexican Peso" },
+  { code: "AED", label: "AED – UAE Dirham" },
+  { code: "THB", label: "THB – Thai Baht" },
+  { code: "IDR", label: "IDR – Indonesian Rupiah" },
+  { code: "KRW", label: "KRW – South Korean Won" },
+  { code: "NZD", label: "NZD – New Zealand Dollar" },
+  { code: "ZAR", label: "ZAR – South African Rand" },
+  { code: "MYR", label: "MYR – Malaysian Ringgit" },
+  { code: "PHP", label: "PHP – Philippine Peso" },
+];
 
 type Budget = typeof BUDGET_OPTIONS[number];
 type Style = typeof STYLE_OPTIONS[number];
@@ -40,7 +62,6 @@ export default function TripDetail() {
   const generateItinerary = useGenerateItinerary();
   const updateTrip = useUpdateTrip();
 
-  // Edit state
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState<{
     destination: string;
@@ -51,6 +72,8 @@ export default function TripDetail() {
     interests: string[];
     groupSize: number;
     constraints: string;
+    currency: string;
+    hotelStars: number;
   } | null>(null);
 
   const startEditing = () => {
@@ -64,6 +87,8 @@ export default function TripDetail() {
       interests: trip.interests ?? [],
       groupSize: trip.groupSize,
       constraints: trip.constraints ?? "",
+      currency: trip.currency ?? "USD",
+      hotelStars: trip.hotelStars ?? 3,
     });
     setEditing(true);
   };
@@ -87,6 +112,8 @@ export default function TripDetail() {
           interests: editForm.interests,
           groupSize: editForm.groupSize,
           constraints: editForm.constraints || undefined,
+          currency: editForm.currency,
+          hotelStars: editForm.hotelStars,
         },
       },
       {
@@ -148,6 +175,9 @@ export default function TripDetail() {
   }
 
   if (!trip) return null;
+
+  const hotelStarsDisplay = (stars: number) =>
+    "★".repeat(stars) + "☆".repeat(5 - stars);
 
   return (
     <Layout>
@@ -239,7 +269,6 @@ export default function TripDetail() {
                 </div>
 
                 {!editing ? (
-                  /* Read-only view */
                   <div className="grid grid-cols-2 gap-y-8 gap-x-4">
                     <div>
                       <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><MapPin className="w-4 h-4" /> Destination</p>
@@ -264,9 +293,16 @@ export default function TripDetail() {
                       <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Compass className="w-4 h-4" /> Style</p>
                       <p className="font-medium text-lg capitalize">{trip.travelStyle}</p>
                     </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Star className="w-4 h-4" /> Hotel Rating</p>
+                      <p className="font-medium text-lg text-amber-500 tracking-wide">{hotelStarsDisplay(trip.hotelStars ?? 3)}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1">💱 Currency</p>
+                      <p className="font-medium text-lg">{trip.currency ?? "USD"}</p>
+                    </div>
                   </div>
                 ) : editForm ? (
-                  /* Edit form */
                   <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
@@ -347,6 +383,47 @@ export default function TripDetail() {
                         ))}
                       </div>
                     </div>
+
+                    <div>
+                      <label className="text-sm text-muted-foreground mb-2 flex items-center gap-2"><Star className="w-4 h-4" /> Hotel Rating</label>
+                      <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setEditForm((p) => p ? { ...p, hotelStars: star } : p)}
+                            className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-xl border-2 transition-all text-xs font-medium ${
+                              editForm.hotelStars === star
+                                ? "border-accent bg-accent/10 text-accent-foreground"
+                                : "border-muted text-muted-foreground hover:border-accent/40"
+                            }`}
+                          >
+                            <div className="flex">
+                              {Array.from({ length: star }).map((_, i) => (
+                                <Star key={i} className={`w-3 h-3 ${editForm.hotelStars === star ? 'fill-accent text-accent' : 'fill-muted-foreground/30 text-muted-foreground/30'}`} />
+                              ))}
+                            </div>
+                            {star}★
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm text-muted-foreground mb-2 block">💱 Currency</label>
+                      <div className="relative">
+                        <select
+                          value={editForm.currency}
+                          onChange={(e) => setEditForm((p) => p ? { ...p, currency: e.target.value } : p)}
+                          className="w-full py-3 px-4 rounded-xl border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring appearance-none cursor-pointer"
+                        >
+                          {CURRENCIES.map(c => (
+                            <option key={c.code} value={c.code}>{c.label}</option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">▾</div>
+                      </div>
+                    </div>
                   </div>
                 ) : null}
               </CardContent>
@@ -420,7 +497,7 @@ export default function TripDetail() {
                   <h4 className="font-serif font-semibold text-lg mb-2">Want to change course?</h4>
                   <p className="text-sm text-muted-foreground mb-6">
                     {editing
-                      ? "Save your changes above, then regenerate to apply them to the itinerary."
+                      ? "Save your changes above, then regenerate to apply them."
                       : "Regenerate a brand new itinerary based on these parameters."}
                   </p>
                   <Button

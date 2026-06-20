@@ -44,6 +44,12 @@ export interface TripInput {
   groupSize: number;
   /** @nullable */
   constraints?: string | null;
+  currency?: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  hotelStars?: number;
 }
 
 export type TripUpdateBudget = typeof TripUpdateBudget[keyof typeof TripUpdateBudget];
@@ -77,6 +83,12 @@ export interface TripUpdate {
   groupSize?: number;
   /** @nullable */
   constraints?: string | null;
+  currency?: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  hotelStars?: number;
 }
 
 export interface Trip {
@@ -90,6 +102,8 @@ export interface Trip {
   groupSize: number;
   /** @nullable */
   constraints?: string | null;
+  currency: string;
+  hotelStars: number;
   hasItinerary?: boolean;
   createdAt: string;
   updatedAt: string;

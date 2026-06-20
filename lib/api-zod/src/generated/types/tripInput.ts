@@ -18,4 +18,10 @@ export interface TripInput {
   groupSize: number;
   /** @nullable */
   constraints?: string | null;
+  currency?: string;
+  /**
+     * @minimum 1
+     * @maximum 5
+     */
+  hotelStars?: number;
 }
