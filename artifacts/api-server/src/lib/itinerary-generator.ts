@@ -204,6 +204,26 @@ function getCurrencySymbol(currency: string): string {
   return symbols[currency] ?? `${currency} `;
 }
 
+// Approximate exchange rates vs USD (updated periodically)
+const EXCHANGE_RATES: Record<string, number> = {
+  USD: 1.0, EUR: 0.92, GBP: 0.79, JPY: 149.5, AUD: 1.53,
+  CAD: 1.36, CHF: 0.90, SGD: 1.34, HKD: 7.82, INR: 83.5,
+  BRL: 4.97, MXN: 17.15, AED: 3.67, THB: 35.1, IDR: 15750,
+  KRW: 1325, NZD: 1.63, ZAR: 18.65, MYR: 4.72, PHP: 56.4,
+};
+
+function getExchangeRate(currency: string): number {
+  return EXCHANGE_RATES[currency] ?? 1.0;
+}
+
+function convertCost(usdAmount: number, rate: number): number {
+  const converted = usdAmount * rate;
+  // Round to sensible precision — no decimals for high-value currencies
+  if (rate >= 100) return Math.round(converted / 100) * 100;
+  if (rate >= 10) return Math.round(converted / 10) * 10;
+  return Math.round(converted);
+}
+
 function starsToTier(hotelStars: number): string {
   if (hotelStars <= 2) return "budget";
   if (hotelStars === 3) return "moderate";
@@ -240,6 +260,9 @@ export function generateItineraryData(trip: Trip): ItineraryData {
   const costMult = getCostMultiplier(trip.budget);
   const numDays = getDaysBetween(trip.startDate, trip.endDate);
   const styleActivities = getTravelStyleActivities(trip.travelStyle, trip.interests as string[]);
+  const currency = trip.currency ?? "USD";
+  const fxRate = getExchangeRate(currency);
+  const sym = getCurrencySymbol(currency);
 
   const days: DaySchedule[] = [];
   let totalCost = 0;
@@ -420,18 +443,26 @@ export function generateItineraryData(trip: Trip): ItineraryData {
     });
   }
 
+  // Apply currency conversion to all activity costs
+  for (const day of days) {
+    for (const act of day.activities) {
+      act.estimatedCost = convertCost(act.estimatedCost, fxRate);
+    }
+    day.estimatedCost = day.activities.reduce((s, a) => s + a.estimatedCost, 0);
+  }
+  totalCost = days.reduce((s, d) => s + d.estimatedCost, 0);
+
   // Hotels
   const hotelsByTier = destData.hotels;
-  const sym = getCurrencySymbol(trip.currency ?? "USD");
   const hotelStars = trip.hotelStars ?? 3;
   const primaryHotelTier = starsToTier(hotelStars);
   const primaryHotel = hotelsByTier.find(h => h.tier === primaryHotelTier) ?? hotelsByTier[0];
   const altHotel = hotelsByTier.find(h => h.tier !== primaryHotelTier && h.tier !== "budget") ?? hotelsByTier[1];
 
   const priceRangeByTier: Record<string, string> = {
-    luxury: `${sym}450–800/night`,
-    moderate: `${sym}150–280/night`,
-    budget: `${sym}35–90/night`,
+    luxury: `${sym}${convertCost(450, fxRate).toLocaleString()}–${convertCost(800, fxRate).toLocaleString()}/night`,
+    moderate: `${sym}${convertCost(150, fxRate).toLocaleString()}–${convertCost(280, fxRate).toLocaleString()}/night`,
+    budget: `${sym}${convertCost(35, fxRate).toLocaleString()}–${convertCost(90, fxRate).toLocaleString()}/night`,
   };
 
   const starLabel = "★".repeat(hotelStars) + "☆".repeat(5 - hotelStars);
@@ -478,6 +509,13 @@ export function generateItineraryData(trip: Trip): ItineraryData {
     mustTry: [r.dish, "Seasonal specialty of the day"],
     address: null,
   }));
+
+  // Transportation plan — incorporate travelingFrom if provided
+  const travelingFrom = (trip as Trip & { travelingFrom?: string | null }).travelingFrom;
+  if (travelingFrom) {
+    const flightNote = `\n\nDeparting from ${travelingFrom}: Check direct or one-stop flights to ${trip.destination}. Allow 2–3 hours at departure airport for international travel and book at least 3–4 weeks in advance for best fares in your ${currency}.`;
+    destData.transport = destData.transport + flightNote;
+  }
 
   // Packing suggestions
   const universalPacking = ["Travel insurance documents", "Passport & visa (if required)", "Digital copies of all documents", "Credit cards with no foreign transaction fees"];

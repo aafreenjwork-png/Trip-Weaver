@@ -2,9 +2,10 @@ import { useListTrips, useGetTripStats } from "@workspace/api-client-react";
 import { Layout } from "@/components/layout";
 import { Link } from "wouter";
 import { format } from "date-fns";
-import { MapPin, Users, Calendar, Plane, Compass, ArrowRight, Loader2 } from "lucide-react";
+import { MapPin, Users, Calendar, Plane, Compass, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { getDestinationImageUrl } from "@/lib/destination-utils";
 
 export default function Home() {
   const { data: trips, isLoading: isLoadingTrips } = useListTrips();
@@ -95,8 +96,13 @@ export default function Home() {
                 <Link key={trip.id} href={`/trips/${trip.id}`}>
                   <Card className="group h-full bg-card border-transparent hover:border-border transition-all duration-500 overflow-hidden cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1">
                     <div className="h-48 bg-muted relative overflow-hidden">
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
-                      <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors z-0" />
+                      <img
+                        src={getDestinationImageUrl(trip.destination)}
+                        alt={trip.destination}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent z-10" />
                       <div className="absolute bottom-4 left-6 z-20">
                         <h3 className="text-2xl font-serif font-bold text-white capitalize drop-shadow-md">
                           {trip.destination}

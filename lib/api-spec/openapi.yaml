@@ -257,6 +257,8 @@ components:
       properties:
         destination:
           type: string
+        travelingFrom:
+          type: ["string", "null"]
         startDate:
           type: string
         endDate:
@@ -287,6 +289,8 @@ components:
       properties:
         destination:
           type: string
+        travelingFrom:
+          type: ["string", "null"]
         startDate:
           type: string
         endDate:
@@ -331,6 +335,8 @@ components:
           type: integer
         destination:
           type: string
+        travelingFrom:
+          type: ["string", "null"]
         startDate:
           type: string
         endDate:

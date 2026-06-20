@@ -10,6 +10,8 @@ import type { TripUpdateTravelStyle } from './tripUpdateTravelStyle';
 
 export interface TripUpdate {
   destination?: string;
+  /** @nullable */
+  travelingFrom?: string | null;
   startDate?: string;
   endDate?: string;
   budget?: TripUpdateBudget;

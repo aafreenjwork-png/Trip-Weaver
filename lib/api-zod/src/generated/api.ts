@@ -23,6 +23,7 @@ export const HealthCheckResponse = zod.object({
 export const ListTripsResponseItem = zod.object({
   "id": zod.number(),
   "destination": zod.string(),
+  "travelingFrom": zod.string().nullish(),
   "startDate": zod.string(),
   "endDate": zod.string(),
   "budget": zod.string(),
@@ -48,6 +49,7 @@ export const createTripBodyHotelStarsMax = 5;
 
 export const CreateTripBody = zod.object({
   "destination": zod.string(),
+  "travelingFrom": zod.string().nullish(),
   "startDate": zod.string(),
   "endDate": zod.string(),
   "budget": zod.enum(['budget', 'moderate', 'luxury']),
@@ -70,6 +72,7 @@ export const GetTripParams = zod.object({
 export const GetTripResponse = zod.object({
   "id": zod.number(),
   "destination": zod.string(),
+  "travelingFrom": zod.string().nullish(),
   "startDate": zod.string(),
   "endDate": zod.string(),
   "budget": zod.string(),
@@ -98,6 +101,7 @@ export const updateTripBodyHotelStarsMax = 5;
 
 export const UpdateTripBody = zod.object({
   "destination": zod.string().optional(),
+  "travelingFrom": zod.string().nullish(),
   "startDate": zod.string().optional(),
   "endDate": zod.string().optional(),
   "budget": zod.enum(['budget', 'moderate', 'luxury']).optional(),
@@ -112,6 +116,7 @@ export const UpdateTripBody = zod.object({
 export const UpdateTripResponse = zod.object({
   "id": zod.number(),
   "destination": zod.string(),
+  "travelingFrom": zod.string().nullish(),
   "startDate": zod.string(),
   "endDate": zod.string(),
   "budget": zod.string(),

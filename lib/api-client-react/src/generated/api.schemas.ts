@@ -36,6 +36,8 @@ export const TripInputTravelStyle = {
 
 export interface TripInput {
   destination: string;
+  /** @nullable */
+  travelingFrom?: string | null;
   startDate: string;
   endDate: string;
   budget: TripInputBudget;
@@ -75,6 +77,8 @@ export const TripUpdateTravelStyle = {
 
 export interface TripUpdate {
   destination?: string;
+  /** @nullable */
+  travelingFrom?: string | null;
   startDate?: string;
   endDate?: string;
   budget?: TripUpdateBudget;
@@ -94,6 +98,8 @@ export interface TripUpdate {
 export interface Trip {
   id: number;
   destination: string;
+  /** @nullable */
+  travelingFrom?: string | null;
   startDate: string;
   endDate: string;
   budget: string;

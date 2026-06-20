@@ -66,6 +66,7 @@ export default function TripDetail() {
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState<{
     destination: string;
+    travelingFrom: string;
     startDate: string;
     endDate: string;
     budget: Budget;
@@ -81,6 +82,7 @@ export default function TripDetail() {
     if (!trip) return;
     setEditForm({
       destination: trip.destination,
+      travelingFrom: trip.travelingFrom ?? "",
       startDate: trip.startDate,
       endDate: trip.endDate,
       budget: trip.budget as Budget,
@@ -106,6 +108,7 @@ export default function TripDetail() {
         id,
         data: {
           destination: editForm.destination,
+          travelingFrom: editForm.travelingFrom || undefined,
           startDate: editForm.startDate,
           endDate: editForm.endDate,
           budget: editForm.budget,
@@ -281,6 +284,10 @@ export default function TripDetail() {
                       <p className="font-medium text-lg capitalize">{trip.destination}</p>
                     </div>
                     <div>
+                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Plane className="w-4 h-4" /> Travelling From</p>
+                      <p className="font-medium text-lg capitalize">{trip.travelingFrom || <span className="text-muted-foreground text-base italic">Not specified</span>}</p>
+                    </div>
+                    <div>
                       <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Users className="w-4 h-4" /> Party Size</p>
                       <p className="font-medium text-lg">{trip.groupSize} Travelers</p>
                     </div>
@@ -316,6 +323,15 @@ export default function TripDetail() {
                         <Input
                           value={editForm.destination}
                           onChange={(e) => setEditForm((p) => p ? { ...p, destination: e.target.value } : p)}
+                          className="rounded-xl"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-sm text-muted-foreground mb-1.5 flex items-center gap-2"><Plane className="w-4 h-4" /> Travelling From</label>
+                        <Input
+                          placeholder="e.g. New York, London"
+                          value={editForm.travelingFrom}
+                          onChange={(e) => setEditForm((p) => p ? { ...p, travelingFrom: e.target.value } : p)}
                           className="rounded-xl"
                         />
                       </div>

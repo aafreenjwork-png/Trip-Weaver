@@ -9,6 +9,8 @@
 export interface Trip {
   id: number;
   destination: string;
+  /** @nullable */
+  travelingFrom?: string | null;
   startDate: string;
   endDate: string;
   budget: string;

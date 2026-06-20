@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, ArrowLeft, Loader2, MapPin, Calendar, Users, Star } from "lucide-react";
+import { ArrowRight, ArrowLeft, Loader2, MapPin, Calendar, Users, Star, Plane } from "lucide-react";
 import { toast } from "sonner";
 
 const BUDGET_OPTIONS = ["budget", "moderate", "luxury"] as const;
@@ -41,6 +41,7 @@ const CURRENCIES = [
 
 const formSchema = z.object({
   destination: z.string().min(2, "Destination is required"),
+  travelingFrom: z.string().optional(),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   budget: z.enum(BUDGET_OPTIONS),
@@ -64,6 +65,7 @@ export default function NewTrip() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       destination: "",
+      travelingFrom: "",
       startDate: "",
       endDate: "",
       budget: "moderate" as const,
@@ -137,6 +139,22 @@ export default function NewTrip() {
                             <div className="relative">
                               <MapPin className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
                               <Input placeholder="e.g. Kyoto, Japan" className="pl-12 py-6 text-lg rounded-xl" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="travelingFrom"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-lg font-serif">Travelling From <span className="text-muted-foreground text-sm font-sans font-normal">(optional)</span></FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Plane className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
+                              <Input placeholder="e.g. New York, London" className="pl-12 py-6 text-lg rounded-xl" {...field} />
                             </div>
                           </FormControl>
                           <FormMessage />
