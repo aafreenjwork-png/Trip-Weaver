@@ -244,6 +244,14 @@ export const GetItineraryResponse = zod.object({
 
 
 /**
+ * @summary Delete the itinerary for a trip
+ */
+export const DeleteItineraryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
  * @summary Update itinerary (edit day/activity)
  */
 export const UpdateItineraryParams = zod.object({

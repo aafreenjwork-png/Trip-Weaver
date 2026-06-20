@@ -8,6 +8,7 @@ import {
 import { Layout } from "@/components/layout";
 import { useRoute, Link, useLocation } from "wouter";
 import { format } from "date-fns";
+import { getDestinationImageUrl } from "@/lib/destination-utils";
 import {
   MapPin, Calendar, Users, Wallet, Compass, Heart,
   Loader2, FileText, ArrowRight, Plane, Sparkles, Pencil, X, Check, Star,
@@ -179,6 +180,8 @@ export default function TripDetail() {
   const hotelStarsDisplay = (stars: number) =>
     "★".repeat(stars) + "☆".repeat(5 - stars);
 
+  const bgImage = getDestinationImageUrl(editing && editForm ? editForm.destination : trip.destination);
+
   return (
     <Layout>
       {generateItinerary.isPending && (
@@ -197,11 +200,14 @@ export default function TripDetail() {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-5xl">
 
         {/* Header Hero */}
-        <div className="relative rounded-3xl overflow-hidden mb-12 bg-primary/5 min-h-[300px] flex items-end">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
-          <div className="absolute inset-0 flex items-center justify-center opacity-10">
-            <MapPin className="w-64 h-64 text-primary" />
-          </div>
+        <div className="relative rounded-3xl overflow-hidden mb-12 min-h-[300px] flex items-end">
+          <img
+            src={bgImage}
+            alt={trip.destination}
+            className="absolute inset-0 w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
           <div className="relative z-20 p-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <p className="text-white/80 font-medium tracking-widest uppercase mb-2">The Blueprint</p>

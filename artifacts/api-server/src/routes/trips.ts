@@ -220,6 +220,28 @@ router.get("/trips/:id/itinerary", async (req, res) => {
   }
 });
 
+// DELETE /trips/:id/itinerary
+router.delete("/trips/:id/itinerary", async (req, res) => {
+  const id = Number(req.params.id);
+  if (!id || isNaN(id)) {
+    res.status(400).json({ error: "Invalid id" });
+    return;
+  }
+  try {
+    const [itinerary] = await db.select().from(itinerariesTable).where(eq(itinerariesTable.tripId, id));
+    if (!itinerary) {
+      res.status(404).json({ error: "Itinerary not found" });
+      return;
+    }
+    await db.delete(itinerariesTable).where(eq(itinerariesTable.tripId, id));
+    await db.update(tripsTable).set({ hasItinerary: false, updatedAt: new Date() }).where(eq(tripsTable.id, id));
+    res.status(204).send();
+  } catch (err) {
+    req.log.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // PATCH /trips/:id/itinerary
 router.patch("/trips/:id/itinerary", async (req, res) => {
   const id = Number(req.params.id);

@@ -10,7 +10,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
               <Map className="w-5 h-5" />
             </div>
-            <span className="font-serif text-2xl font-bold tracking-tight text-primary">Aura</span>
+            <span className="font-serif text-2xl font-bold tracking-tight text-primary">TripWeaver</span>
           </Link>
           <nav className="flex items-center gap-6">
             <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">

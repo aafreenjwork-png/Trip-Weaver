@@ -634,6 +634,76 @@ export function useGetItinerary<TData = Awaited<ReturnType<typeof getItinerary>>
 
 
 
+export const getDeleteItineraryUrl = (id: number,) => {
+
+
+
+
+  return `/api/trips/${id}/itinerary`
+}
+
+/**
+ * @summary Delete the itinerary for a trip
+ */
+export const deleteItinerary = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getDeleteItineraryUrl(id),
+  {
+    ...options,
+    method: 'DELETE'
+
+
+  }
+);}
+
+
+
+
+export const getDeleteItineraryMutationOptions = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItinerary>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof deleteItinerary>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['deleteItinerary'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteItinerary>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  deleteItinerary(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DeleteItineraryMutationResult = NonNullable<Awaited<ReturnType<typeof deleteItinerary>>>
+
+    export type DeleteItineraryMutationError = ErrorType<ErrorResponse>
+
+    /**
+ * @summary Delete the itinerary for a trip
+ */
+export const useDeleteItinerary = <TError = ErrorType<ErrorResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteItinerary>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof deleteItinerary>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getDeleteItineraryMutationOptions(options));
+    }
+
 export const getUpdateItineraryUrl = (id: number,) => {
 
 
