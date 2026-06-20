@@ -1,13 +1,31 @@
-import { useGetTrip, useGenerateItinerary, getGetTripQueryKey } from "@workspace/api-client-react";
+import { useState } from "react";
+import {
+  useGetTrip,
+  useGenerateItinerary,
+  useUpdateTrip,
+  getGetTripQueryKey,
+} from "@workspace/api-client-react";
 import { Layout } from "@/components/layout";
 import { useRoute, Link, useLocation } from "wouter";
 import { format } from "date-fns";
-import { MapPin, Calendar, Users, Wallet, Compass, Heart, Loader2, FileText, ArrowRight, Plane, Sparkles } from "lucide-react";
+import {
+  MapPin, Calendar, Users, Wallet, Compass, Heart,
+  Loader2, FileText, ArrowRight, Plane, Sparkles, Pencil, X, Check,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+const BUDGET_OPTIONS = ["budget", "moderate", "luxury"] as const;
+const STYLE_OPTIONS = ["adventure", "cultural", "relaxation", "business", "family", "romantic"] as const;
+const INTEREST_OPTIONS = ["art", "food", "history", "nature", "nightlife", "shopping", "sports", "technology", "wellness", "architecture"];
+
+type Budget = typeof BUDGET_OPTIONS[number];
+type Style = typeof STYLE_OPTIONS[number];
 
 export default function TripDetail() {
   const [, params] = useRoute("/trips/:id");
@@ -16,13 +34,88 @@ export default function TripDetail() {
   const queryClient = useQueryClient();
 
   const { data: trip, isLoading } = useGetTrip(id, {
-    query: {
-      enabled: !!id,
-      queryKey: getGetTripQueryKey(id)
-    }
+    query: { enabled: !!id, queryKey: getGetTripQueryKey(id) },
   });
 
   const generateItinerary = useGenerateItinerary();
+  const updateTrip = useUpdateTrip();
+
+  // Edit state
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState<{
+    destination: string;
+    startDate: string;
+    endDate: string;
+    budget: Budget;
+    travelStyle: Style;
+    interests: string[];
+    groupSize: number;
+    constraints: string;
+  } | null>(null);
+
+  const startEditing = () => {
+    if (!trip) return;
+    setEditForm({
+      destination: trip.destination,
+      startDate: trip.startDate,
+      endDate: trip.endDate,
+      budget: trip.budget as Budget,
+      travelStyle: trip.travelStyle as Style,
+      interests: trip.interests ?? [],
+      groupSize: trip.groupSize,
+      constraints: trip.constraints ?? "",
+    });
+    setEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setEditing(false);
+    setEditForm(null);
+  };
+
+  const saveEdits = () => {
+    if (!editForm) return;
+    updateTrip.mutate(
+      {
+        id,
+        data: {
+          destination: editForm.destination,
+          startDate: editForm.startDate,
+          endDate: editForm.endDate,
+          budget: editForm.budget,
+          travelStyle: editForm.travelStyle,
+          interests: editForm.interests,
+          groupSize: editForm.groupSize,
+          constraints: editForm.constraints || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Trip preferences saved.");
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(id) });
+          setEditing(false);
+          setEditForm(null);
+        },
+        onError: () => {
+          toast.error("Could not save changes. Please try again.");
+        },
+      }
+    );
+  };
+
+  const toggleInterest = (interest: string) => {
+    if (!editForm) return;
+    setEditForm((prev) => {
+      if (!prev) return prev;
+      const has = prev.interests.includes(interest);
+      return {
+        ...prev,
+        interests: has
+          ? prev.interests.filter((i) => i !== interest)
+          : [...prev.interests, interest],
+      };
+    });
+  };
 
   const onGenerate = () => {
     generateItinerary.mutate(
@@ -35,7 +128,7 @@ export default function TripDetail() {
         },
         onError: () => {
           toast.error("Could not weave the itinerary. Please try again.");
-        }
+        },
       }
     );
   };
@@ -72,7 +165,7 @@ export default function TripDetail() {
       )}
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12 max-w-5xl">
-        
+
         {/* Header Hero */}
         <div className="relative rounded-3xl overflow-hidden mb-12 bg-primary/5 min-h-[300px] flex items-end">
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
@@ -82,7 +175,9 @@ export default function TripDetail() {
           <div className="relative z-20 p-10 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <p className="text-white/80 font-medium tracking-widest uppercase mb-2">The Blueprint</p>
-              <h1 className="text-5xl md:text-6xl font-serif font-bold text-white capitalize">{trip.destination}</h1>
+              <h1 className="text-5xl md:text-6xl font-serif font-bold text-white capitalize">
+                {editing && editForm ? editForm.destination : trip.destination}
+              </h1>
             </div>
             {trip.hasItinerary ? (
               <Button onClick={() => setLocation(`/trips/${id}/itinerary`)} className="rounded-full bg-white text-primary hover:bg-white/90 px-8 py-6 text-lg shadow-2xl">
@@ -97,43 +192,189 @@ export default function TripDetail() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          
+
           {/* Main Details */}
           <div className="md:col-span-2 space-y-8">
             <Card className="bg-card border-none shadow-lg">
               <CardContent className="p-8">
-                <h3 className="text-2xl font-serif font-semibold mb-6 flex items-center gap-3">
-                  <FileText className="w-6 h-6 text-primary" /> Core Parameters
-                </h3>
-                <div className="grid grid-cols-2 gap-y-8 gap-x-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Calendar className="w-4 h-4"/> Dates</p>
-                    <p className="font-medium text-lg">{format(new Date(trip.startDate), "MMMM d, yyyy")} <br/>to {format(new Date(trip.endDate), "MMMM d, yyyy")}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Users className="w-4 h-4"/> Party Size</p>
-                    <p className="font-medium text-lg">{trip.groupSize} Travelers</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Wallet className="w-4 h-4"/> Budget Tier</p>
-                    <p className="font-medium text-lg capitalize">{trip.budget}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Compass className="w-4 h-4"/> Style</p>
-                    <p className="font-medium text-lg capitalize">{trip.travelStyle}</p>
-                  </div>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-serif font-semibold flex items-center gap-3">
+                    <FileText className="w-6 h-6 text-primary" /> Core Parameters
+                  </h3>
+                  {!editing ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={startEditing}
+                      className="rounded-full gap-2 border-primary/30 text-primary hover:bg-primary/5"
+                    >
+                      <Pencil className="w-3.5 h-3.5" /> Edit Plan
+                    </Button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={cancelEditing}
+                        className="rounded-full gap-2"
+                        disabled={updateTrip.isPending}
+                      >
+                        <X className="w-3.5 h-3.5" /> Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={saveEdits}
+                        className="rounded-full gap-2"
+                        disabled={updateTrip.isPending}
+                      >
+                        {updateTrip.isPending ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <Check className="w-3.5 h-3.5" />
+                        )}
+                        Save Changes
+                      </Button>
+                    </div>
+                  )}
                 </div>
+
+                {!editing ? (
+                  /* Read-only view */
+                  <div className="grid grid-cols-2 gap-y-8 gap-x-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><MapPin className="w-4 h-4" /> Destination</p>
+                      <p className="font-medium text-lg capitalize">{trip.destination}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Users className="w-4 h-4" /> Party Size</p>
+                      <p className="font-medium text-lg">{trip.groupSize} Travelers</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Calendar className="w-4 h-4" /> Dates</p>
+                      <p className="font-medium text-lg">
+                        {format(new Date(trip.startDate), "MMMM d, yyyy")}
+                        <br />to {format(new Date(trip.endDate), "MMMM d, yyyy")}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Wallet className="w-4 h-4" /> Budget Tier</p>
+                      <p className="font-medium text-lg capitalize">{trip.budget}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Compass className="w-4 h-4" /> Style</p>
+                      <p className="font-medium text-lg capitalize">{trip.travelStyle}</p>
+                    </div>
+                  </div>
+                ) : editForm ? (
+                  /* Edit form */
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <label className="text-sm text-muted-foreground mb-1.5 flex items-center gap-2"><MapPin className="w-4 h-4" /> Destination</label>
+                        <Input
+                          value={editForm.destination}
+                          onChange={(e) => setEditForm((p) => p ? { ...p, destination: e.target.value } : p)}
+                          className="rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-muted-foreground mb-1.5 flex items-center gap-2"><Calendar className="w-4 h-4" /> Start Date</label>
+                        <Input
+                          type="date"
+                          value={editForm.startDate}
+                          onChange={(e) => setEditForm((p) => p ? { ...p, startDate: e.target.value } : p)}
+                          className="rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-muted-foreground mb-1.5 flex items-center gap-2"><Calendar className="w-4 h-4" /> End Date</label>
+                        <Input
+                          type="date"
+                          value={editForm.endDate}
+                          onChange={(e) => setEditForm((p) => p ? { ...p, endDate: e.target.value } : p)}
+                          className="rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-sm text-muted-foreground mb-1.5 flex items-center gap-2"><Users className="w-4 h-4" /> Party Size</label>
+                        <Input
+                          type="number"
+                          min={1}
+                          max={20}
+                          value={editForm.groupSize}
+                          onChange={(e) => setEditForm((p) => p ? { ...p, groupSize: parseInt(e.target.value) || 1 } : p)}
+                          className="rounded-xl"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm text-muted-foreground mb-2 flex items-center gap-2"><Wallet className="w-4 h-4" /> Budget Tier</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {BUDGET_OPTIONS.map((b) => (
+                          <button
+                            key={b}
+                            type="button"
+                            onClick={() => setEditForm((p) => p ? { ...p, budget: b } : p)}
+                            className={`px-5 py-2 rounded-full text-sm font-medium capitalize transition-all border ${
+                              editForm.budget === b
+                                ? "bg-primary text-primary-foreground border-primary shadow-md"
+                                : "bg-muted text-muted-foreground border-transparent hover:border-primary/30"
+                            }`}
+                          >
+                            {b}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-sm text-muted-foreground mb-2 flex items-center gap-2"><Compass className="w-4 h-4" /> Travel Style</label>
+                      <div className="flex gap-2 flex-wrap">
+                        {STYLE_OPTIONS.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setEditForm((p) => p ? { ...p, travelStyle: s } : p)}
+                            className={`px-5 py-2 rounded-full text-sm font-medium capitalize transition-all border ${
+                              editForm.travelStyle === s
+                                ? "bg-primary text-primary-foreground border-primary shadow-md"
+                                : "bg-muted text-muted-foreground border-transparent hover:border-primary/30"
+                            }`}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
 
-            {trip.constraints && (
+            {/* Constraints card */}
+            {!editing ? (
+              trip.constraints && (
+                <Card className="bg-primary/5 border-none shadow-md">
+                  <CardContent className="p-8">
+                    <h3 className="text-xl font-serif font-semibold mb-4 text-primary">Special Constraints</h3>
+                    <p className="text-muted-foreground leading-relaxed">{trip.constraints}</p>
+                  </CardContent>
+                </Card>
+              )
+            ) : editForm ? (
               <Card className="bg-primary/5 border-none shadow-md">
                 <CardContent className="p-8">
                   <h3 className="text-xl font-serif font-semibold mb-4 text-primary">Special Constraints</h3>
-                  <p className="text-muted-foreground leading-relaxed">{trip.constraints}</p>
+                  <Textarea
+                    placeholder="Dietary restrictions, accessibility needs, must-see places..."
+                    value={editForm.constraints}
+                    onChange={(e) => setEditForm((p) => p ? { ...p, constraints: e.target.value } : p)}
+                    className="rounded-xl resize-none min-h-[100px]"
+                  />
                 </CardContent>
               </Card>
-            )}
+            ) : null}
           </div>
 
           {/* Sidebar */}
@@ -143,13 +384,32 @@ export default function TripDetail() {
                 <h3 className="text-xl font-serif font-semibold mb-6 flex items-center gap-3">
                   <Heart className="w-5 h-5 text-accent" /> Curated Interests
                 </h3>
-                <div className="flex flex-wrap gap-2">
-                  {trip.interests?.map((interest, i) => (
-                    <span key={i} className="px-4 py-2 rounded-full bg-muted text-muted-foreground text-sm font-medium capitalize">
-                      {interest}
-                    </span>
-                  ))}
-                </div>
+                {!editing ? (
+                  <div className="flex flex-wrap gap-2">
+                    {trip.interests?.map((interest, i) => (
+                      <span key={i} className="px-4 py-2 rounded-full bg-muted text-muted-foreground text-sm font-medium capitalize">
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                ) : editForm ? (
+                  <div className="flex flex-wrap gap-2">
+                    {INTEREST_OPTIONS.map((interest) => (
+                      <button
+                        key={interest}
+                        type="button"
+                        onClick={() => toggleInterest(interest)}
+                        className={`px-4 py-2 rounded-full text-sm font-medium capitalize transition-all border ${
+                          editForm.interests.includes(interest)
+                            ? "bg-accent text-white border-accent shadow-sm"
+                            : "bg-muted text-muted-foreground border-transparent hover:border-accent/30"
+                        }`}
+                      >
+                        {interest}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </CardContent>
             </Card>
 
@@ -158,9 +418,18 @@ export default function TripDetail() {
                 <div className="bg-secondary/10 p-6 flex flex-col items-center text-center">
                   <Plane className="w-10 h-10 text-secondary mb-4" />
                   <h4 className="font-serif font-semibold text-lg mb-2">Want to change course?</h4>
-                  <p className="text-sm text-muted-foreground mb-6">Regenerate a brand new itinerary based on these parameters.</p>
-                  <Button onClick={onGenerate} variant="outline" className="w-full rounded-full border-secondary text-secondary hover:bg-secondary hover:text-white transition-colors">
-                    Regenerate AI Plan
+                  <p className="text-sm text-muted-foreground mb-6">
+                    {editing
+                      ? "Save your changes above, then regenerate to apply them to the itinerary."
+                      : "Regenerate a brand new itinerary based on these parameters."}
+                  </p>
+                  <Button
+                    onClick={onGenerate}
+                    variant="outline"
+                    disabled={editing}
+                    className="w-full rounded-full border-secondary text-secondary hover:bg-secondary hover:text-white transition-colors disabled:opacity-40"
+                  >
+                    Regenerate Plan
                   </Button>
                 </div>
               </Card>
