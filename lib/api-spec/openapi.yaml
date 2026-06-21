@@ -412,6 +412,8 @@ components:
           type: ["string", "null"]
         tips:
           type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
 
     Itinerary:
       type: object

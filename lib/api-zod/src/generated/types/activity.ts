@@ -18,4 +18,6 @@ export interface Activity {
   address?: string | null;
   /** @nullable */
   tips?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
 }

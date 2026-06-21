@@ -1,7 +1,10 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Map } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const [location] = useLocation();
+  const isHome = location === "/";
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md">
@@ -13,7 +16,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <span className="font-serif text-2xl font-bold tracking-tight text-primary">TripWeaver</span>
           </Link>
           <nav className="flex items-center gap-6">
-            <Link href="/" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+            <Link
+              href="/"
+              className={`text-sm font-medium transition-colors ${isHome ? "text-primary font-semibold" : "text-muted-foreground hover:text-primary"}`}
+            >
               Journeys
             </Link>
             <Link href="/new" className="text-sm font-medium bg-primary text-primary-foreground px-5 py-2.5 rounded-full hover:bg-primary/90 transition-colors shadow-sm">

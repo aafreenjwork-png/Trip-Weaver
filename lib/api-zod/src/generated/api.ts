@@ -161,7 +161,8 @@ export const GenerateItineraryResponse = zod.object({
   "estimatedCost": zod.number(),
   "duration": zod.string(),
   "address": zod.string().nullish(),
-  "tips": zod.string().nullish()
+  "tips": zod.string().nullish(),
+  "imageUrl": zod.string().nullish()
 })),
   "estimatedCost": zod.number(),
   "notes": zod.string().nullish()
@@ -215,7 +216,8 @@ export const GetItineraryResponse = zod.object({
   "estimatedCost": zod.number(),
   "duration": zod.string(),
   "address": zod.string().nullish(),
-  "tips": zod.string().nullish()
+  "tips": zod.string().nullish(),
+  "imageUrl": zod.string().nullish()
 })),
   "estimatedCost": zod.number(),
   "notes": zod.string().nullish()
@@ -275,7 +277,8 @@ export const UpdateItineraryBody = zod.object({
   "estimatedCost": zod.number(),
   "duration": zod.string(),
   "address": zod.string().nullish(),
-  "tips": zod.string().nullish()
+  "tips": zod.string().nullish(),
+  "imageUrl": zod.string().nullish()
 })),
   "estimatedCost": zod.number(),
   "notes": zod.string().nullish()
@@ -297,7 +300,8 @@ export const UpdateItineraryResponse = zod.object({
   "estimatedCost": zod.number(),
   "duration": zod.string(),
   "address": zod.string().nullish(),
-  "tips": zod.string().nullish()
+  "tips": zod.string().nullish(),
+  "imageUrl": zod.string().nullish()
 })),
   "estimatedCost": zod.number(),
   "notes": zod.string().nullish()

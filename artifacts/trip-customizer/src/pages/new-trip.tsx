@@ -41,7 +41,8 @@ const CURRENCIES = [
 
 const formSchema = z.object({
   destination: z.string().min(2, "Destination is required"),
-  travelingFrom: z.string().optional(),
+  travelingFrom: z.string().min(2, "Origin city is required"),
+  currency: z.string().default("USD"),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
   budget: z.enum(BUDGET_OPTIONS),
@@ -49,9 +50,11 @@ const formSchema = z.object({
   interests: z.array(z.string()).min(1, "Select at least one interest"),
   groupSize: z.coerce.number().min(1, "Must be at least 1"),
   constraints: z.string().optional(),
-  currency: z.string().default("USD"),
   hotelStars: z.coerce.number().min(1).max(5).default(3),
-});
+}).refine(
+  (data) => !data.startDate || !data.endDate || new Date(data.endDate) > new Date(data.startDate),
+  { message: "End date must be after start date", path: ["endDate"] }
+);
 
 const INTERESTS = ["food", "history", "nature", "art", "nightlife", "shopping", "sports", "wellness"];
 
@@ -66,6 +69,7 @@ export default function NewTrip() {
     defaultValues: {
       destination: "",
       travelingFrom: "",
+      currency: "USD",
       startDate: "",
       endDate: "",
       budget: "moderate" as const,
@@ -73,7 +77,6 @@ export default function NewTrip() {
       interests: [],
       groupSize: 2,
       constraints: "",
-      currency: "USD",
       hotelStars: 3,
     },
   });
@@ -93,7 +96,19 @@ export default function NewTrip() {
     );
   };
 
-  const nextStep = () => setStep(s => Math.min(s + 1, totalSteps));
+  const validateStep = async () => {
+    if (step === 1) {
+      return await form.trigger(["destination", "travelingFrom", "currency", "startDate", "endDate"]);
+    }
+    if (step === 2) return await form.trigger(["budget", "travelStyle", "hotelStars"]);
+    if (step === 3) return await form.trigger(["interests"]);
+    return true;
+  };
+
+  const nextStep = async () => {
+    const valid = await validateStep();
+    if (valid) setStep(s => Math.min(s + 1, totalSteps));
+  };
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
 
   return (
@@ -126,41 +141,70 @@ export default function NewTrip() {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
 
-                {/* Step 1: Destination & Dates */}
+                {/* Step 1: Destination, Origin, Currency & Dates */}
                 <div className={step === 1 ? "block animate-in fade-in slide-in-from-right-8" : "hidden"}>
                   <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <FormField
+                        control={form.control}
+                        name="destination"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-lg font-serif">Destination</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <MapPin className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
+                                <Input placeholder="e.g. Kyoto, Japan" className="pl-12 py-6 text-lg rounded-xl" {...field} />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="travelingFrom"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-lg font-serif">Travelling From</FormLabel>
+                            <FormControl>
+                              <div className="relative">
+                                <Plane className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
+                                <Input placeholder="e.g. New York, London" className="pl-12 py-6 text-lg rounded-xl" {...field} />
+                              </div>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+
                     <FormField
                       control={form.control}
-                      name="destination"
+                      name="currency"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-lg font-serif">Destination</FormLabel>
+                          <FormLabel className="text-lg font-serif">Preferred Currency</FormLabel>
+                          <FormDescription>All cost estimates will use this currency.</FormDescription>
                           <FormControl>
-                            <div className="relative">
-                              <MapPin className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
-                              <Input placeholder="e.g. Kyoto, Japan" className="pl-12 py-6 text-lg rounded-xl" {...field} />
+                            <div className="relative mt-1">
+                              <select
+                                value={field.value}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-full py-4 px-4 rounded-xl border border-input bg-background text-foreground text-base focus:outline-none focus:ring-2 focus:ring-ring appearance-none cursor-pointer"
+                              >
+                                {CURRENCIES.map(c => (
+                                  <option key={c.code} value={c.code}>{c.label}</option>
+                                ))}
+                              </select>
+                              <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">▾</div>
                             </div>
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    <FormField
-                      control={form.control}
-                      name="travelingFrom"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-lg font-serif">Travelling From <span className="text-muted-foreground text-sm font-sans font-normal">(optional)</span></FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Plane className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
-                              <Input placeholder="e.g. New York, London" className="pl-12 py-6 text-lg rounded-xl" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+
                     <div className="grid grid-cols-2 gap-6">
                       <FormField
                         control={form.control}
@@ -351,32 +395,6 @@ export default function NewTrip() {
                             <div className="relative">
                               <Users className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
                               <Input type="number" min={1} className="pl-12 py-6 text-lg rounded-xl" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="currency"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-lg font-serif">Preferred Currency</FormLabel>
-                          <FormDescription>Cost estimates in the itinerary will use this currency.</FormDescription>
-                          <FormControl>
-                            <div className="relative mt-1">
-                              <select
-                                value={field.value}
-                                onChange={(e) => field.onChange(e.target.value)}
-                                className="w-full py-4 px-4 rounded-xl border border-input bg-background text-foreground text-base focus:outline-none focus:ring-2 focus:ring-ring appearance-none cursor-pointer"
-                              >
-                                {CURRENCIES.map(c => (
-                                  <option key={c.code} value={c.code}>{c.label}</option>
-                                ))}
-                              </select>
-                              <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">▾</div>
                             </div>
                           </FormControl>
                           <FormMessage />

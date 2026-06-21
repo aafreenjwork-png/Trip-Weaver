@@ -289,7 +289,7 @@ export default function TripDetail() {
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Users className="w-4 h-4" /> Party Size</p>
-                      <p className="font-medium text-lg">{trip.groupSize} Travelers</p>
+                      <p className="font-medium text-lg">{trip.groupSize} {trip.groupSize === 1 ? "Traveler" : "Travelers"}</p>
                     </div>
                     <div>
                       <p className="text-sm text-muted-foreground mb-1 flex items-center gap-2"><Calendar className="w-4 h-4" /> Dates</p>
@@ -317,6 +317,7 @@ export default function TripDetail() {
                   </div>
                 ) : editForm ? (
                   <div className="space-y-6">
+                    <p className="text-xs text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg">Currency can only be changed when creating a new trip.</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="col-span-2">
                         <label className="text-sm text-muted-foreground mb-1.5 flex items-center gap-2"><MapPin className="w-4 h-4" /> Destination</label>

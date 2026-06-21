@@ -181,29 +181,41 @@ export default function ItineraryView() {
                           {activity.type === 'activity' && <Sparkles className="w-4 h-4" />}
                           {activity.type === 'shopping' && <Briefcase className="w-4 h-4" />}
                         </div>
-                        <CardContent className="p-6 md:p-8 ml-8 md:ml-0 md:w-[calc(50%-2.5rem)] md:even:ml-auto md:odd:mr-auto">
-                          <div className="flex items-center gap-3 text-sm text-primary font-medium mb-3">
-                            <Clock className="w-4 h-4" /> {activity.time} <span className="text-muted-foreground">({activity.duration})</span>
-                          </div>
-                          <h4 className="text-xl font-serif font-semibold mb-2">{activity.title}</h4>
-                          <p className="text-muted-foreground mb-4 leading-relaxed">{activity.description}</p>
-
-                          <div className="flex flex-wrap items-center gap-4 mt-6 pt-4 border-t border-border/50">
-                            {activity.address && (
-                              <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                                <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
-                                <span>{activity.address}</span>
-                              </div>
-                            )}
-                            <div className="flex items-center gap-1.5 text-sm font-medium ml-auto bg-muted px-3 py-1 rounded-md">
-                              {sym}{activity.estimatedCost.toLocaleString()}
-                            </div>
-                          </div>
-                          {activity.tips && (
-                            <div className="mt-4 bg-secondary/10 text-secondary-foreground p-3 rounded-lg text-sm italic border border-secondary/20">
-                              💡 Tip: {activity.tips}
+                        <CardContent className="p-0 ml-8 md:ml-0 md:w-[calc(50%-2.5rem)] md:even:ml-auto md:odd:mr-auto overflow-hidden rounded-xl">
+                          {activity.imageUrl && (
+                            <div className="w-full h-40 overflow-hidden rounded-t-xl">
+                              <img
+                                src={activity.imageUrl}
+                                alt={activity.title}
+                                className="w-full h-full object-cover"
+                                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                              />
                             </div>
                           )}
+                          <div className="p-6 md:p-8">
+                            <div className="flex items-center gap-3 text-sm text-primary font-medium mb-3">
+                              <Clock className="w-4 h-4" /> {activity.time} <span className="text-muted-foreground">({activity.duration})</span>
+                            </div>
+                            <h4 className="text-xl font-serif font-semibold mb-2">{activity.title}</h4>
+                            <p className="text-muted-foreground mb-4 leading-relaxed">{activity.description}</p>
+
+                            <div className="flex flex-wrap items-center gap-4 mt-6 pt-4 border-t border-border/50">
+                              {activity.address && (
+                                <div className="flex items-start gap-2 text-sm text-muted-foreground">
+                                  <MapPin className="w-4 h-4 mt-0.5 shrink-0" />
+                                  <span>{activity.address}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center gap-1.5 text-sm font-medium ml-auto bg-muted px-3 py-1 rounded-md">
+                                {sym}{activity.estimatedCost.toLocaleString()}
+                              </div>
+                            </div>
+                            {activity.tips && (
+                              <div className="mt-4 bg-secondary/10 text-secondary-foreground p-3 rounded-lg text-sm italic border border-secondary/20">
+                                💡 Tip: {activity.tips}
+                              </div>
+                            )}
+                          </div>
                         </CardContent>
                       </Card>
                     ))}

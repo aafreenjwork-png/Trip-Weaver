@@ -9,6 +9,35 @@ interface Activity {
   duration: string;
   address: string | null;
   tips: string | null;
+  imageUrl: string | null;
+}
+
+// Curated Unsplash photo IDs by activity category
+const ACTIVITY_IMAGES = {
+  hotel: "photo-1631049307264-da0ec9d70304",        // hotel room
+  restaurant: "photo-1414235077428-338989a2e8c0",    // restaurant/dinner
+  breakfast: "photo-1533089860892-a7c6f0a88566",     // breakfast
+  lunch: "photo-1568901346375-23c9450c58cd",         // lunch/food
+  attraction: "photo-1488085061387-422e29b40080",    // generic sightseeing
+  transport: "photo-1436491865332-7a61a109cc05",     // airplane window
+  activity: "photo-1551918120-9739cb430c6d",         // outdoor activity
+  shopping: "photo-1441986300917-64674bd600d8",      // shopping
+};
+
+function activityImage(type: Activity["type"], title?: string): string {
+  const t = title?.toLowerCase() ?? "";
+  const base = "https://images.unsplash.com";
+  const q = "?w=800&q=75&fit=crop";
+  if (type === "hotel") return `${base}/${ACTIVITY_IMAGES.hotel}${q}`;
+  if (type === "transport") return `${base}/${ACTIVITY_IMAGES.transport}${q}`;
+  if (type === "shopping") return `${base}/${ACTIVITY_IMAGES.shopping}${q}`;
+  if (type === "activity") return `${base}/${ACTIVITY_IMAGES.activity}${q}`;
+  if (type === "restaurant") {
+    if (t.includes("breakfast") || t.includes("morning")) return `${base}/${ACTIVITY_IMAGES.breakfast}${q}`;
+    if (t.includes("lunch") || t.includes("midday")) return `${base}/${ACTIVITY_IMAGES.lunch}${q}`;
+    return `${base}/${ACTIVITY_IMAGES.restaurant}${q}`;
+  }
+  return `${base}/${ACTIVITY_IMAGES.attraction}${q}`;
 }
 
 interface DaySchedule {
@@ -188,9 +217,9 @@ function getDestinationData(destination: string) {
 
 function getCostMultiplier(budget: string): number {
   switch (budget) {
-    case "luxury": return 3.5;
-    case "moderate": return 2.0;
-    default: return 1.0;
+    case "luxury": return 2.2;
+    case "moderate": return 1.0;
+    default: return 0.38; // budget: ~$40 hotel, $10-15 meals, $8 attractions
   }
 }
 
@@ -277,6 +306,23 @@ export function generateItineraryData(trip: Trip): ItineraryData {
     const activities: Activity[] = [];
 
     if (isFirstDay) {
+      // Flight from origin if specified
+      const originCity = (trip as Trip & { travelingFrom?: string | null }).travelingFrom;
+      if (originCity) {
+        const flightCostUSD = trip.budget === "luxury" ? 1100 : trip.budget === "moderate" ? 520 : 210;
+        activities.push({
+          time: "06:00",
+          title: `Flight: ${originCity} → ${trip.destination}`,
+          description: `Depart from ${originCity} to ${trip.destination}. Check in at least 2 hours before for domestic or 3 hours for international flights. Use this time to settle in, charge devices, and plan your first day.`,
+          type: "transport",
+          estimatedCost: Math.round(flightCostUSD * costMult * trip.groupSize),
+          duration: "Varies by route",
+          address: `${originCity} International Airport`,
+          tips: `Book return flights from ${trip.destination} in advance. Set price alerts on Google Flights for the best fares.`,
+          imageUrl: activityImage("transport", "flight"),
+        });
+      }
+
       activities.push({
         time: "14:00",
         title: "Hotel Check-In & Orientation",
@@ -286,6 +332,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "2 hours",
         address: null,
         tips: "Ask the hotel concierge for neighborhood tips and any current local events.",
+        imageUrl: activityImage("hotel"),
       });
       activities.push({
         time: "16:30",
@@ -296,6 +343,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "2.5 hours",
         address: `Near city center, ${trip.destination}`,
         tips: "Visit just before closing to avoid crowds, and book tickets in advance during peak season.",
+        imageUrl: activityImage("attraction"),
       });
       activities.push({
         time: "19:30",
@@ -306,6 +354,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "2 hours",
         address: null,
         tips: "Make a reservation — this place fills up fast in the evenings.",
+        imageUrl: activityImage("restaurant", "dinner"),
       });
     } else if (isLastDay) {
       activities.push({
@@ -317,6 +366,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "2 hours",
         address: null,
         tips: "Most hotels allow late checkout or luggage storage — ask ahead.",
+        imageUrl: activityImage("activity"),
       });
       activities.push({
         time: "10:30",
@@ -327,6 +377,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "1.5 hours",
         address: null,
         tips: "Airport prices are 30-50% higher — buy souvenirs in local markets instead.",
+        imageUrl: activityImage("shopping"),
       });
       activities.push({
         time: "12:30",
@@ -337,16 +388,18 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "1.5 hours",
         address: null,
         tips: "Keep airport transfer time in mind — allow at least 3 hours before international flights.",
+        imageUrl: activityImage("restaurant", "lunch"),
       });
       activities.push({
         time: "15:00",
-        title: "Airport / Departure Transfer",
-        description: `Transfer to the airport or train station for your onward journey. Safe travels!`,
+        title: "Return Flight / Departure Transfer",
+        description: `Transfer to the airport for your return journey home. Allow extra time for check-in and security. Safe travels!`,
         type: "transport",
         estimatedCost: Math.round(30 * costMult),
         duration: "1 hour",
         address: null,
         tips: null,
+        imageUrl: activityImage("transport"),
       });
     } else {
       activities.push({
@@ -358,6 +411,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "1 hour",
         address: null,
         tips: "Locals eat breakfast early. Arrive before 9am to get a table without waiting.",
+        imageUrl: activityImage("restaurant", "breakfast"),
       });
       activities.push({
         time: "09:30",
@@ -368,6 +422,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "2.5 hours",
         address: `${trip.destination} city center`,
         tips: "Early morning is the best time — fewer crowds and better light for photos.",
+        imageUrl: activityImage("attraction"),
       });
 
       if (styleActivities[i % styleActivities.length]) {
@@ -380,6 +435,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
           duration: "2 hours",
           address: null,
           tips: "Book in advance as availability is limited for this popular experience.",
+          imageUrl: activityImage("activity"),
         });
       }
 
@@ -392,6 +448,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "1 hour",
         address: null,
         tips: null,
+        imageUrl: activityImage("restaurant", "lunch"),
       });
 
       activities.push({
@@ -403,6 +460,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "2 hours",
         address: null,
         tips: null,
+        imageUrl: activityImage("attraction"),
       });
 
       if (destData.activities[i % destData.activities.length]) {
@@ -416,6 +474,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
           duration: "1.5 hours",
           address: null,
           tips: null,
+          imageUrl: activityImage(act.type),
         });
       }
 
@@ -428,6 +487,7 @@ export function generateItineraryData(trip: Trip): ItineraryData {
         duration: "2 hours",
         address: null,
         tips: "Evening reservations fill up by 3pm — call ahead or book online.",
+        imageUrl: activityImage("restaurant", "dinner"),
       });
     }
 
