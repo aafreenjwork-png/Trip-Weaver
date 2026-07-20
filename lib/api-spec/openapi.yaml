@@ -459,6 +459,35 @@ components:
             $ref: "#/components/schemas/AlternativeOption"
         generatedAt:
           type: string
+        suggestedExperiences:
+          type: array
+          items:
+            $ref: "#/components/schemas/SuggestedExperience"
+
+    SuggestedExperience:
+      type: object
+      required:
+        - title
+        - description
+        - category
+        - estimatedCost
+        - duration
+        - imageUrl
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+        estimatedCost:
+          type: number
+        duration:
+          type: string
+        imageUrl:
+          type: string
+        tips:
+          type: ["string", "null"]
 
     HotelRecommendation:
       type: object

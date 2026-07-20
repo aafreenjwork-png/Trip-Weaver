@@ -72,6 +72,16 @@ interface AlternativeOption {
   reason: string;
 }
 
+interface SuggestedExperience {
+  title: string;
+  description: string;
+  category: string;
+  estimatedCost: number;
+  duration: string;
+  imageUrl: string;
+  tips: string | null;
+}
+
 interface ItineraryData {
   days: DaySchedule[];
   totalEstimatedCost: number;
@@ -80,6 +90,7 @@ interface ItineraryData {
   packingSuggestions: string[];
   transportationPlan: string;
   alternativeOptions: AlternativeOption[];
+  suggestedExperiences: SuggestedExperience[];
 }
 
 const DESTINATION_DATA: Record<string, {
@@ -591,6 +602,95 @@ export function generateItineraryData(trip: Trip): ItineraryData {
     packingSuggestions.push("Lightweight hiking shoes", "Reusable water bottle with filter");
   }
 
+  // Suggested experiences
+  const EXPERIENCE_IMAGES: Record<string, string> = {
+    activity:   "photo-1551918120-9739cb430c6d",
+    shopping:   "photo-1441986300917-64674bd600d8",
+    cultural:   "photo-1523906834658-6e24ef2386f9",
+    food:       "photo-1414235077428-338989a2e8c0",
+    wellness:   "photo-1544161515-4ab6ce6db874",
+    adventure:  "photo-1519681393784-d120267933ba",
+    scenic:     "photo-1500534314209-a25ddb2bd429",
+    nightlife:  "photo-1516450360452-9312f5e86fc7",
+  };
+
+  function experienceImage(category: string): string {
+    const map: Record<string, string> = {
+      "Cultural": EXPERIENCE_IMAGES.cultural,
+      "Adventure": EXPERIENCE_IMAGES.adventure,
+      "Food & Drink": EXPERIENCE_IMAGES.food,
+      "Shopping": EXPERIENCE_IMAGES.shopping,
+      "Wellness": EXPERIENCE_IMAGES.wellness,
+      "Scenic": EXPERIENCE_IMAGES.scenic,
+      "Nightlife": EXPERIENCE_IMAGES.nightlife,
+    };
+    const id = map[category] ?? EXPERIENCE_IMAGES.activity;
+    return `https://images.unsplash.com/${id}?w=600&q=75&fit=crop`;
+  }
+
+  // Category mapping for travel styles
+  const styleCategory: Record<string, string> = {
+    adventure: "Adventure", cultural: "Cultural", relaxation: "Wellness",
+    business: "Cultural", family: "Cultural", romantic: "Scenic",
+  };
+  const expCategory = styleCategory[trip.travelStyle] ?? "Cultural";
+
+  const suggestedExperiences: SuggestedExperience[] = [];
+
+  // Destination-curated activities
+  for (const act of destData.activities) {
+    const cat = act.type === "shopping" ? "Shopping" : expCategory;
+    suggestedExperiences.push({
+      title: act.name,
+      description: act.description,
+      category: cat,
+      estimatedCost: convertCost(Math.round(act.type === "shopping" ? 60 : 45) * costMult, fxRate),
+      duration: "2–3 hours",
+      imageUrl: experienceImage(cat),
+      tips: null,
+    });
+  }
+
+  // Travel-style activities (unique ones not already in schedule)
+  const usedStyleActs = new Set(styleActivities.slice(0, numDays).map(s => s));
+  for (const act of styleActivities) {
+    if (!usedStyleActs.has(act)) continue;
+    suggestedExperiences.push({
+      title: act,
+      description: `A curated ${trip.travelStyle}-style experience to enhance your time in ${trip.destination}.`,
+      category: expCategory,
+      estimatedCost: convertCost(Math.round(55 * costMult), fxRate),
+      duration: "2 hours",
+      imageUrl: experienceImage(expCategory),
+      tips: "Book ahead — popular experiences fill up days in advance.",
+    });
+  }
+
+  // Top attractions as "must-see" experiences
+  const topAttractions = destData.attractions.slice(0, 3);
+  for (const att of topAttractions) {
+    suggestedExperiences.push({
+      title: `Visit ${att}`,
+      description: `One of ${trip.destination}'s most iconic landmarks. Allow 2–3 hours to explore fully and don't miss the hidden corners most visitors skip.`,
+      category: "Cultural",
+      estimatedCost: convertCost(Math.round(22 * costMult), fxRate),
+      duration: "2–3 hours",
+      imageUrl: experienceImage("Cultural"),
+      tips: "Book tickets online at least a day ahead to skip the queue.",
+    });
+  }
+
+  // Food & drink experience
+  suggestedExperiences.push({
+    title: `${trip.destination} Food Tour`,
+    description: `A guided tasting walk through the city's best markets, street stalls, and local specialties — the fastest way to understand a culture is through its food.`,
+    category: "Food & Drink",
+    estimatedCost: convertCost(Math.round(65 * costMult * trip.groupSize), fxRate),
+    duration: "3 hours",
+    imageUrl: experienceImage("Food & Drink"),
+    tips: "Go hungry — you'll taste 8–12 different dishes.",
+  });
+
   // Alternative options
   const alternativeOptions: AlternativeOption[] = [
     {
@@ -620,5 +720,6 @@ export function generateItineraryData(trip: Trip): ItineraryData {
     packingSuggestions,
     transportationPlan: destData.transport,
     alternativeOptions,
+    suggestedExperiences,
   };
 }

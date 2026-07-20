@@ -191,7 +191,16 @@ export const GenerateItineraryResponse = zod.object({
   "description": zod.string(),
   "reason": zod.string()
 })),
-  "generatedAt": zod.string()
+  "generatedAt": zod.string(),
+  "suggestedExperiences": zod.array(zod.object({
+  "title": zod.string(),
+  "description": zod.string(),
+  "category": zod.string(),
+  "estimatedCost": zod.number(),
+  "duration": zod.string(),
+  "imageUrl": zod.string(),
+  "tips": zod.string().nullish()
+})).optional()
 })
 
 
@@ -246,7 +255,16 @@ export const GetItineraryResponse = zod.object({
   "description": zod.string(),
   "reason": zod.string()
 })),
-  "generatedAt": zod.string()
+  "generatedAt": zod.string(),
+  "suggestedExperiences": zod.array(zod.object({
+  "title": zod.string(),
+  "description": zod.string(),
+  "category": zod.string(),
+  "estimatedCost": zod.number(),
+  "duration": zod.string(),
+  "imageUrl": zod.string(),
+  "tips": zod.string().nullish()
+})).optional()
 })
 
 
@@ -330,7 +348,16 @@ export const UpdateItineraryResponse = zod.object({
   "description": zod.string(),
   "reason": zod.string()
 })),
-  "generatedAt": zod.string()
+  "generatedAt": zod.string(),
+  "suggestedExperiences": zod.array(zod.object({
+  "title": zod.string(),
+  "description": zod.string(),
+  "category": zod.string(),
+  "estimatedCost": zod.number(),
+  "duration": zod.string(),
+  "imageUrl": zod.string(),
+  "tips": zod.string().nullish()
+})).optional()
 })
 
 

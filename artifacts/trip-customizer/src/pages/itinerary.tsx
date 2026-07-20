@@ -5,7 +5,7 @@ import { useRoute, Link, useLocation } from "wouter";
 import { format } from "date-fns";
 import {
   MapPin, Clock, Utensils, Bed, Briefcase,
-  Map, Bus, Sparkles, ChevronLeft, Calendar as CalendarIcon, Trash2, Loader2,
+  Map, Bus, Sparkles, ChevronLeft, Calendar as CalendarIcon, Trash2, Loader2, Star,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -154,6 +154,7 @@ export default function ItineraryView() {
             <TabsTrigger value="hotels" className="rounded-lg px-6 py-3 text-base data-[state=active]:bg-card data-[state=active]:shadow-sm">Stays</TabsTrigger>
             <TabsTrigger value="restaurants" className="rounded-lg px-6 py-3 text-base data-[state=active]:bg-card data-[state=active]:shadow-sm">Dining</TabsTrigger>
             <TabsTrigger value="logistics" className="rounded-lg px-6 py-3 text-base data-[state=active]:bg-card data-[state=active]:shadow-sm">Logistics & Prep</TabsTrigger>
+            <TabsTrigger value="experiences" className="rounded-lg px-6 py-3 text-base data-[state=active]:bg-card data-[state=active]:shadow-sm">Suggested Experiences</TabsTrigger>
           </TabsList>
 
           {/* Schedule Tab */}
@@ -278,6 +279,53 @@ export default function ItineraryView() {
                 </Card>
               ))}
             </div>
+          </TabsContent>
+
+          {/* Suggested Experiences Tab */}
+          <TabsContent value="experiences" className="animate-in fade-in duration-500">
+            {itinerary.suggestedExperiences && itinerary.suggestedExperiences.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {itinerary.suggestedExperiences.map((exp, i) => (
+                  <Card key={i} className="bg-card border-none shadow-md hover:shadow-lg transition-shadow overflow-hidden flex flex-row">
+                    <div className="w-36 shrink-0 overflow-hidden">
+                      <img
+                        src={exp.imageUrl}
+                        alt={exp.title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      />
+                    </div>
+                    <CardContent className="p-5 flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <h3 className="text-lg font-serif font-semibold leading-snug">{exp.title}</h3>
+                        <Badge variant="secondary" className="text-xs shrink-0">{exp.category}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed mb-4">{exp.description}</p>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground border-t border-border/50 pt-3 mt-auto">
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 shrink-0" />
+                          {exp.duration}
+                        </div>
+                        <div className="flex items-center gap-1 font-medium text-foreground ml-auto bg-muted px-2.5 py-1 rounded-md">
+                          {sym}{exp.estimatedCost.toLocaleString()}
+                        </div>
+                      </div>
+                      {exp.tips && (
+                        <div className="mt-3 bg-secondary/10 text-secondary-foreground p-2.5 rounded-lg text-xs italic border border-secondary/20">
+                          💡 {exp.tips}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-20 text-muted-foreground">
+                <Star className="w-10 h-10 mx-auto mb-4 opacity-30" />
+                <p className="font-serif text-lg">No suggested experiences available.</p>
+                <p className="text-sm mt-1">Regenerate your itinerary to get personalised recommendations.</p>
+              </div>
+            )}
           </TabsContent>
 
           {/* Logistics Tab */}

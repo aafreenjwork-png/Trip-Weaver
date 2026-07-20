@@ -9,6 +9,7 @@ import type { AlternativeOption } from './alternativeOption';
 import type { DaySchedule } from './daySchedule';
 import type { HotelRecommendation } from './hotelRecommendation';
 import type { RestaurantRecommendation } from './restaurantRecommendation';
+import type { SuggestedExperience } from './suggestedExperience';
 
 export interface Itinerary {
   id: number;
@@ -21,4 +22,5 @@ export interface Itinerary {
   transportationPlan: string;
   alternativeOptions: AlternativeOption[];
   generatedAt: string;
+  suggestedExperiences?: SuggestedExperience[];
 }

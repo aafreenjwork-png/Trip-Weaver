@@ -177,6 +177,17 @@ export interface AlternativeOption {
   reason: string;
 }
 
+export interface SuggestedExperience {
+  title: string;
+  description: string;
+  category: string;
+  estimatedCost: number;
+  duration: string;
+  imageUrl: string;
+  /** @nullable */
+  tips?: string | null;
+}
+
 export interface Itinerary {
   id: number;
   tripId: number;
@@ -188,6 +199,7 @@ export interface Itinerary {
   transportationPlan: string;
   alternativeOptions: AlternativeOption[];
   generatedAt: string;
+  suggestedExperiences?: SuggestedExperience[];
 }
 
 export interface ItineraryUpdate {

@@ -16,6 +16,7 @@ export * from './hotelRecommendation';
 export * from './itinerary';
 export * from './itineraryUpdate';
 export * from './restaurantRecommendation';
+export * from './suggestedExperience';
 export * from './trip';
 export * from './tripInput';
 export * from './tripInputBudget';
