@@ -250,6 +250,23 @@ export default function NewTrip() {
                         )}
                       />
                     </div>
+
+                    <FormField
+                      control={form.control}
+                      name="groupSize"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-lg font-serif">Party Size</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Users className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
+                              <Input type="number" min={1} className="pl-12 py-6 text-lg rounded-xl" {...field} />
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
 
@@ -396,23 +413,6 @@ export default function NewTrip() {
                 {/* Step 4: Final Details */}
                 <div className={step === 4 ? "block animate-in fade-in slide-in-from-right-8" : "hidden"}>
                   <div className="space-y-6">
-                    <FormField
-                      control={form.control}
-                      name="groupSize"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-lg font-serif">Group Size</FormLabel>
-                          <FormControl>
-                            <div className="relative">
-                              <Users className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
-                              <Input type="number" min={1} className="pl-12 py-6 text-lg rounded-xl" {...field} />
-                            </div>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
                     <FormField
                       control={form.control}
                       name="constraints"
