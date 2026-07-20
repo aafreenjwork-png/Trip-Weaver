@@ -231,7 +231,18 @@ export default function NewTrip() {
                             <FormControl>
                               <div className="relative">
                                 <Calendar className="absolute left-4 top-4 w-5 h-5 text-muted-foreground" />
-                                <Input type="date" className="pl-12 py-6 text-lg rounded-xl" {...field} />
+                                <Input
+                                  type="date"
+                                  className="pl-12 py-6 text-lg rounded-xl"
+                                  {...field}
+                                  min={(() => {
+                                    const s = form.getValues("startDate");
+                                    if (!s) return undefined;
+                                    const d = new Date(s);
+                                    d.setDate(d.getDate() + 1);
+                                    return d.toISOString().split("T")[0];
+                                  })()}
+                                />
                               </div>
                             </FormControl>
                             <FormMessage />

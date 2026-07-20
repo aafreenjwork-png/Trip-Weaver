@@ -103,6 +103,10 @@ export default function TripDetail() {
 
   const saveEdits = () => {
     if (!editForm) return;
+    if (editForm.startDate && editForm.endDate && new Date(editForm.endDate) <= new Date(editForm.startDate)) {
+      toast.error("End date must be after start date.");
+      return;
+    }
     updateTrip.mutate(
       {
         id,
@@ -350,6 +354,7 @@ export default function TripDetail() {
                         <Input
                           type="date"
                           value={editForm.endDate}
+                          min={editForm.startDate ? (() => { const d = new Date(editForm.startDate); d.setDate(d.getDate() + 1); return d.toISOString().split("T")[0]; })() : undefined}
                           onChange={(e) => setEditForm((p) => p ? { ...p, endDate: e.target.value } : p)}
                           className="rounded-xl"
                         />
