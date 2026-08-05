@@ -6,6 +6,7 @@ import { format } from "date-fns";
 import {
   MapPin, Clock, Utensils, Bed, Briefcase,
   Map, Bus, Sparkles, ChevronLeft, Calendar as CalendarIcon, Trash2, Loader2, Star,
+  Plane, Hotel, UtensilsCrossed, Ticket, Landmark, ExternalLink,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +27,14 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { getDestinationImageUrl, getCurrencySymbol } from "@/lib/destination-utils";
+import {
+  googleFlightsUrl, skyscannerFlightsUrl, kayakFlightsUrl, expediaFlightsUrl,
+  bookingComUrl, airbnbHotelsUrl, hotelsComUrl, expediaHotelsUrl,
+  yelpRestaurantsUrl, tripadvisorRestaurantsUrl, openTableUrl, googleMapsRestaurantsUrl,
+  viatorUrl, getYourGuideUrl, airbnbExperiencesUrl, klookUrl,
+  tripadvisorAttractionsUrl, googleMapsAttractionsUrl, lonelyPlanetUrl,
+  googleMapsSearchUrl, yelpSearchUrl, viatorActivityUrl,
+} from "@/lib/booking-utils";
 
 export default function ItineraryView() {
   const [, params] = useRoute("/trips/:id/itinerary");
@@ -155,6 +164,7 @@ export default function ItineraryView() {
             <TabsTrigger value="restaurants" className="rounded-lg px-6 py-3 text-base data-[state=active]:bg-card data-[state=active]:shadow-sm">Dining</TabsTrigger>
             <TabsTrigger value="logistics" className="rounded-lg px-6 py-3 text-base data-[state=active]:bg-card data-[state=active]:shadow-sm">Logistics & Prep</TabsTrigger>
             <TabsTrigger value="experiences" className="rounded-lg px-6 py-3 text-base data-[state=active]:bg-card data-[state=active]:shadow-sm">Suggested Experiences</TabsTrigger>
+            <TabsTrigger value="book" className="rounded-lg px-6 py-3 text-base data-[state=active]:bg-card data-[state=active]:shadow-sm font-semibold text-primary">Book It</TabsTrigger>
           </TabsList>
 
           {/* Schedule Tab */}
@@ -216,6 +226,29 @@ export default function ItineraryView() {
                                 💡 {activity.tips}
                               </div>
                             )}
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {activity.type === 'restaurant' && (<>
+                                <a href={yelpSearchUrl(activity.title, trip.destination)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#d32323]/10 text-[#d32323] hover:bg-[#d32323]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Yelp</a>
+                                <a href={openTableUrl(trip.destination, trip.startDate, trip.groupSize)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#da3743]/10 text-[#da3743] hover:bg-[#da3743]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />OpenTable</a>
+                                <a href={googleMapsRestaurantsUrl(trip.destination, activity.title)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#4285f4]/10 text-[#4285f4] hover:bg-[#4285f4]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Maps</a>
+                              </>)}
+                              {activity.type === 'attraction' && (<>
+                                <a href={googleMapsSearchUrl(activity.title, trip.destination)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#4285f4]/10 text-[#4285f4] hover:bg-[#4285f4]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Maps</a>
+                                <a href={tripadvisorAttractionsUrl(activity.title)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#34e0a1]/10 text-[#1a7a50] hover:bg-[#34e0a1]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />TripAdvisor</a>
+                              </>)}
+                              {(activity.type === 'activity' || activity.type === 'shopping') && (<>
+                                <a href={viatorActivityUrl(activity.title, trip.destination)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#172432]/10 text-[#172432] hover:bg-[#172432]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Viator</a>
+                                <a href={getYourGuideUrl(trip.destination, trip.startDate, trip.endDate, trip.groupSize)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#ff8000]/10 text-[#cc6600] hover:bg-[#ff8000]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />GetYourGuide</a>
+                              </>)}
+                              {activity.type === 'hotel' && (<>
+                                <a href={bookingComUrl(trip.destination, trip.startDate, trip.endDate, trip.groupSize)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#003580]/10 text-[#003580] hover:bg-[#003580]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Booking.com</a>
+                                <a href={airbnbHotelsUrl(trip.destination, trip.startDate, trip.endDate, trip.groupSize)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#ff5a5f]/10 text-[#ff5a5f] hover:bg-[#ff5a5f]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Airbnb</a>
+                              </>)}
+                              {activity.type === 'transport' && trip.travelingFrom && (<>
+                                <a href={googleFlightsUrl(trip.travelingFrom, trip.destination, trip.startDate, trip.endDate)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#4285f4]/10 text-[#4285f4] hover:bg-[#4285f4]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Google Flights</a>
+                                <a href={skyscannerFlightsUrl(trip.travelingFrom, trip.destination, trip.startDate, trip.endDate, trip.groupSize)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#0770e3]/10 text-[#0770e3] hover:bg-[#0770e3]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Skyscanner</a>
+                              </>)}
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
@@ -326,6 +359,127 @@ export default function ItineraryView() {
                 <p className="text-sm mt-1">Regenerate your itinerary to get personalised recommendations.</p>
               </div>
             )}
+          </TabsContent>
+
+          {/* Book It Tab */}
+          <TabsContent value="book" className="animate-in fade-in duration-500 space-y-10">
+
+            {/* Helper to render a platform card */}
+            {(() => {
+              const dest = trip.destination;
+              const start = trip.startDate;
+              const end = trip.endDate;
+              const pax = trip.groupSize;
+              const from = (trip as typeof trip & { travelingFrom?: string | null }).travelingFrom;
+
+              type BookingCard = { label: string; description: string; url: string; color: string };
+              const Section = ({ icon, title, subtitle, cards }: { icon: React.ReactNode; title: string; subtitle: string; cards: BookingCard[] }) => (
+                <div>
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">{icon}</div>
+                    <div>
+                      <h3 className="text-xl font-serif font-semibold">{title}</h3>
+                      <p className="text-sm text-muted-foreground">{subtitle}</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {cards.map((c) => (
+                      <a key={c.label} href={c.url} target="_blank" rel="noopener noreferrer"
+                        className="group flex flex-col gap-2 p-5 rounded-2xl border border-border bg-card hover:shadow-lg transition-all hover:-translate-y-0.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-base" style={{ color: c.color }}>{c.label}</span>
+                          <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{c.description}</p>
+                        <span className="mt-auto inline-flex items-center gap-1 text-xs font-medium" style={{ color: c.color }}>
+                          Search now →
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              );
+
+              return (
+                <div className="space-y-10">
+                  {/* Trip summary banner */}
+                  <div className="rounded-2xl bg-primary/5 border border-primary/10 p-6 flex flex-wrap gap-6">
+                    <div><p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">Destination</p><p className="font-serif text-lg font-semibold capitalize">{dest}</p></div>
+                    <div><p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">Dates</p><p className="font-serif text-lg font-semibold">{format(new Date(start), "MMM d")} – {format(new Date(end), "MMM d, yyyy")}</p></div>
+                    <div><p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">Travellers</p><p className="font-serif text-lg font-semibold">{pax} {pax === 1 ? "person" : "people"}</p></div>
+                    {from && <div><p className="text-xs font-medium uppercase tracking-widest text-muted-foreground mb-1">Flying from</p><p className="font-serif text-lg font-semibold capitalize">{from}</p></div>}
+                    <p className="w-full text-xs text-muted-foreground mt-1">All links open on the platform's site pre-filled with your trip details. Prices and availability are shown live on each platform.</p>
+                  </div>
+
+                  {/* Flights — only if origin is known */}
+                  {from && (
+                    <Section
+                      icon={<Plane className="w-5 h-5" />}
+                      title="Flights"
+                      subtitle={`${from} → ${dest} · ${format(new Date(start), "MMM d")} return ${format(new Date(end), "MMM d")}`}
+                      cards={[
+                        { label: "Google Flights", description: "Compare fares across all airlines with price tracking and flexible date search.", url: googleFlightsUrl(from, dest, start, end), color: "#4285f4" },
+                        { label: "Skyscanner", description: "Find the cheapest flights with one-way, return and multi-city options.", url: skyscannerFlightsUrl(from, dest, start, end, pax), color: "#0770e3" },
+                        { label: "Kayak", description: "Search hundreds of travel sites at once and set price alerts.", url: kayakFlightsUrl(from, dest, start, end, pax), color: "#ff690f" },
+                        { label: "Expedia", description: "Bundle flights with hotels for extra savings and package deals.", url: expediaFlightsUrl(from, dest, start, end, pax), color: "#1d3d6e" },
+                      ]}
+                    />
+                  )}
+
+                  {/* Hotels */}
+                  <Section
+                    icon={<Hotel className="w-5 h-5" />}
+                    title="Hotels & Stays"
+                    subtitle={`${dest} · ${format(new Date(start), "MMM d")} – ${format(new Date(end), "MMM d")} · ${pax} guest${pax > 1 ? "s" : ""}`}
+                    cards={[
+                      { label: "Booking.com", description: "World's largest accommodation platform with free cancellation options.", url: bookingComUrl(dest, start, end, pax), color: "#003580" },
+                      { label: "Airbnb", description: "Unique homes, apartments and private rooms from local hosts.", url: airbnbHotelsUrl(dest, start, end, pax), color: "#ff5a5f" },
+                      { label: "Hotels.com", description: "Earn reward nights and access member-only deals.", url: hotelsComUrl(dest, start, end, pax), color: "#c00" },
+                      { label: "Expedia", description: "Bundle hotel + flight for extra savings on your whole trip.", url: expediaHotelsUrl(dest, start, end, pax), color: "#1d3d6e" },
+                    ]}
+                  />
+
+                  {/* Restaurants & Cafes */}
+                  <Section
+                    icon={<UtensilsCrossed className="w-5 h-5" />}
+                    title="Restaurants & Cafes"
+                    subtitle={`Dining in ${dest} — browse reviews, menus and reserve a table`}
+                    cards={[
+                      { label: "Yelp", description: "Reviews, photos, and menus for restaurants and cafes near you.", url: yelpRestaurantsUrl(dest), color: "#d32323" },
+                      { label: "OpenTable", description: "Reserve a table at the best restaurants in real time.", url: openTableUrl(dest, start, pax), color: "#da3743" },
+                      { label: "TripAdvisor", description: "Millions of traveller reviews to find the top-rated local spots.", url: tripadvisorRestaurantsUrl(dest), color: "#00af87" },
+                      { label: "Google Maps", description: "Explore every café, restaurant and bar on an interactive map.", url: googleMapsRestaurantsUrl(dest), color: "#4285f4" },
+                    ]}
+                  />
+
+                  {/* Experiences & Activities */}
+                  <Section
+                    icon={<Ticket className="w-5 h-5" />}
+                    title="Experiences & Activities"
+                    subtitle={`Things to do in ${dest} with instant booking`}
+                    cards={[
+                      { label: "Viator", description: "Skip-the-line tickets, guided tours and unique local experiences.", url: viatorUrl(dest, start), color: "#172432" },
+                      { label: "GetYourGuide", description: "Thousands of activities, day trips and multi-day tours.", url: getYourGuideUrl(dest, start, end, pax), color: "#ff8000" },
+                      { label: "Airbnb Experiences", description: "Hands-on activities hosted by local experts.", url: airbnbExperiencesUrl(dest, start, end), color: "#ff5a5f" },
+                      { label: "Klook", description: "Discounted attraction passes and activity bundles across Asia & beyond.", url: klookUrl(dest), color: "#e8192c" },
+                    ]}
+                  />
+
+                  {/* Attractions */}
+                  <Section
+                    icon={<Landmark className="w-5 h-5" />}
+                    title="Attractions & Sights"
+                    subtitle={`Must-see landmarks and hidden gems in ${dest}`}
+                    cards={[
+                      { label: "TripAdvisor", description: "Top-rated sights ranked by travellers with photos and tips.", url: tripadvisorAttractionsUrl(dest), color: "#00af87" },
+                      { label: "Google Maps", description: "Explore landmarks, museums and parks on an interactive map.", url: googleMapsAttractionsUrl(dest), color: "#4285f4" },
+                      { label: "Lonely Planet", description: "Expert-curated guide to the best sights in ${dest}.", url: lonelyPlanetUrl(dest), color: "#00aadf" },
+                      { label: "Yelp", description: "Find arts & entertainment venues with crowd-sourced reviews.", url: yelpRestaurantsUrl(dest, "arts,entertainment"), color: "#d32323" },
+                    ]}
+                  />
+                </div>
+              );
+            })()}
           </TabsContent>
 
           {/* Logistics Tab */}
