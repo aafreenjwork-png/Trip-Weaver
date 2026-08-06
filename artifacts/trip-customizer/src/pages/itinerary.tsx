@@ -181,10 +181,13 @@ export default function ItineraryView() {
                     </h2>
                   </div>
 
-                  <div className="space-y-6 relative before:absolute before:inset-0 before:ml-5 md:before:ml-6 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
-                    {day.activities.map((activity, idx) => (
-                      <Card key={idx} className="relative bg-card border-none shadow-md hover:shadow-lg transition-shadow overflow-visible">
-                        <div className="absolute left-0 md:left-1/2 w-10 h-10 -translate-x-1/2 rounded-full bg-primary border-4 border-background flex items-center justify-center text-primary-foreground z-10 top-6">
+                  <div className="space-y-5 relative before:absolute before:left-5 before:top-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-border before:to-transparent">
+                    {day.activities.map((activity, idx) => {
+                      const lo = Math.round(activity.estimatedCost * (activity.type === 'transport' ? 0.88 : activity.type === 'hotel' ? 0.85 : 0.72));
+                      const hi = Math.round(activity.estimatedCost * (activity.type === 'transport' ? 1.12 : activity.type === 'hotel' ? 1.2 : 1.35));
+                      return (
+                      <Card key={idx} className="relative ml-14 bg-card border-none shadow-md hover:shadow-lg transition-shadow overflow-hidden">
+                        <div className="absolute -left-9 top-6 w-10 h-10 -translate-x-1/2 rounded-full bg-primary border-4 border-background flex items-center justify-center text-primary-foreground z-10 shrink-0">
                           {activity.type === 'attraction' && <Map className="w-4 h-4" />}
                           {activity.type === 'restaurant' && <Utensils className="w-4 h-4" />}
                           {activity.type === 'hotel' && <Bed className="w-4 h-4" />}
@@ -192,9 +195,9 @@ export default function ItineraryView() {
                           {activity.type === 'activity' && <Sparkles className="w-4 h-4" />}
                           {activity.type === 'shopping' && <Briefcase className="w-4 h-4" />}
                         </div>
-                        <CardContent className="p-0 ml-8 md:ml-0 md:w-[calc(50%-2.5rem)] md:even:ml-auto md:odd:mr-auto overflow-hidden rounded-xl flex flex-row">
-                          {activity.imageUrl && (
-                            <div className="w-32 shrink-0 overflow-hidden rounded-l-xl">
+                        <CardContent className="p-0 flex flex-row min-h-[11rem]">
+                          {activity.imageUrl ? (
+                            <div className="w-48 sm:w-56 md:w-64 shrink-0 overflow-hidden">
                               <img
                                 src={activity.imageUrl}
                                 alt={activity.title}
@@ -202,15 +205,17 @@ export default function ItineraryView() {
                                 onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                               />
                             </div>
+                          ) : (
+                            <div className="w-48 sm:w-56 md:w-64 shrink-0 bg-muted/40" />
                           )}
-                          <div className="p-5 flex-1 min-w-0">
-                            <div className="flex items-center gap-3 text-sm text-primary font-medium mb-3">
+                          <div className="p-5 flex-1 min-w-0 flex flex-col">
+                            <div className="flex items-center gap-3 text-sm text-primary font-medium mb-2">
                               <Clock className="w-4 h-4 shrink-0" /> {activity.time} <span className="text-muted-foreground">({activity.duration})</span>
                             </div>
-                            <h4 className="text-lg font-serif font-semibold mb-2 leading-snug">{activity.title}</h4>
-                            <p className="text-muted-foreground mb-4 leading-relaxed text-sm">{activity.description}</p>
+                            <h4 className="text-lg font-serif font-semibold mb-1.5 leading-snug">{activity.title}</h4>
+                            <p className="text-muted-foreground leading-relaxed text-sm flex-1">{activity.description}</p>
 
-                            <div className="flex flex-wrap items-center gap-3 mt-4 pt-4 border-t border-border/50">
+                            <div className="flex flex-wrap items-center gap-3 mt-4 pt-3 border-t border-border/50">
                               {activity.address && (
                                 <div className="flex items-start gap-2 text-xs text-muted-foreground">
                                   <MapPin className="w-3.5 h-3.5 mt-0.5 shrink-0" />
@@ -218,7 +223,7 @@ export default function ItineraryView() {
                                 </div>
                               )}
                               <div className="flex items-center gap-1.5 text-sm font-medium ml-auto bg-muted px-3 py-1 rounded-md whitespace-nowrap">
-                                {sym}{activity.estimatedCost.toLocaleString()}
+                                {sym}{lo.toLocaleString()} – {sym}{hi.toLocaleString()}
                               </div>
                             </div>
                             {activity.tips && (
@@ -252,7 +257,7 @@ export default function ItineraryView() {
                           </div>
                         </CardContent>
                       </Card>
-                    ))}
+                    ); })}
                   </div>
                 </div>
               ))}
