@@ -98,7 +98,7 @@ export default function NewTrip() {
 
   const validateStep = async () => {
     if (step === 1) {
-      return await form.trigger(["destination", "travelingFrom", "currency", "startDate", "endDate"]);
+      return await form.trigger(["destination", "travelingFrom", "currency", "startDate", "endDate", "groupSize"]);
     }
     if (step === 2) return await form.trigger(["budget", "travelStyle", "hotelStars"]);
     if (step === 3) return await form.trigger(["interests"]);

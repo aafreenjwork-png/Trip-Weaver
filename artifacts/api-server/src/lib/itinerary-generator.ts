@@ -197,6 +197,50 @@ function getDestinationData(destination: string) {
   );
   if (key) return DESTINATION_DATA[key];
 
+  const normalized = destination.toLowerCase();
+  if (normalized.includes("bhutan") || normalized.includes("thimphu") || normalized.includes("paro")) {
+    return {
+      attractions: [
+        "Tiger’s Nest Monastery (Paro Taktsang)",
+        "Punakha Dzong",
+        "Buddha Dordenma Statue",
+        "Dochula Pass",
+        "Phobjikha Valley & Gangtey Nature Trail",
+        "National Memorial Chorten",
+        "Kyichu Lhakhang",
+        "Motithang Takin Preserve",
+      ],
+      restaurants: [
+        { name: "Folk Heritage Restaurant", cuisine: "Bhutanese", dish: "Ema datshi with red rice" },
+        { name: "Ambient Café", cuisine: "Bhutanese & Continental", dish: "Momos and butter tea" },
+        { name: "Sonam Trophel Restaurant", cuisine: "Traditional Bhutanese", dish: "Phaksha paa with seasonal greens" },
+        { name: "Bukhari at COMO Uma Paro", cuisine: "Himalayan", dish: "Slow-cooked local dishes" },
+        { name: "Lhayul Restaurant", cuisine: "Bhutanese", dish: "Jasha maru with buckwheat pancakes" },
+      ],
+      hotels: [
+        { name: "COMO Uma Paro", description: "Quiet hillside retreat in the Paro Valley with Himalayan views and a restorative spa", tier: "luxury" },
+        { name: "Le Méridien Thimphu", description: "Comfortable city stay near the river, markets, and Thimphu’s cultural landmarks", tier: "moderate" },
+        { name: "Hotel Norbuling", description: "Friendly central guesthouse with practical rooms and easy access to Thimphu’s sights", tier: "budget" },
+      ],
+      transport: "Bhutan is best explored with a licensed local guide and arranged vehicle. Roads are scenic but winding, so allow extra time between Paro, Thimphu, Punakha, and Phobjikha. Paro Airport is the main international gateway; flights are limited and should be booked early. Walking works well inside Thimphu and Paro town centers.",
+      packing: [
+        "Layers and a warm fleece for mountain evenings",
+        "Comfortable shoes with good grip",
+        "Modest clothing covering shoulders and knees for monasteries",
+        "Sunscreen and sunglasses for high-altitude sun",
+        "Reusable water bottle",
+        "Small daypack for monastery and valley walks",
+        "Motion-sickness medication for winding roads",
+        "Passport, visa documents, and travel insurance",
+      ],
+      activities: [
+        { name: "Bhutanese Archery Demonstration", description: "Watch Bhutan’s national sport and learn why archery is central to village celebrations and local culture", type: "activity" as const },
+        { name: "Traditional Hot-Stone Bath", description: "Unwind in a mineral-rich hot-stone bath, a restorative Bhutanese wellness tradition", type: "activity" as const },
+        { name: "Thimphu Weekend Market", description: "Browse local produce, textiles, incense, and handmade crafts along the Wang Chhu river", type: "shopping" as const },
+      ],
+    };
+  }
+
   // Generic fallback
   return {
     attractions: [
