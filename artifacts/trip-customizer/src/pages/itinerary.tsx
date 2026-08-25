@@ -376,6 +376,10 @@ export default function ItineraryView() {
               const end = trip.endDate;
               const pax = trip.groupSize;
               const from = (trip as typeof trip & { travelingFrom?: string | null }).travelingFrom;
+              const hotelName = itinerary.hotels[0]?.name;
+              const restaurantName = itinerary.restaurants[0]?.name;
+              const experienceName = itinerary.suggestedExperiences?.[0]?.title;
+              const attractionName = itinerary.days[0]?.activities.find((a) => a.type === "attraction")?.title;
 
               type BookingCard = { label: string; description: string; url: string; color: string };
               const Section = ({ icon, title, subtitle, cards }: { icon: React.ReactNode; title: string; subtitle: string; cards: BookingCard[] }) => (
@@ -437,10 +441,10 @@ export default function ItineraryView() {
                     title="Hotels & Stays"
                     subtitle={`${dest} · ${format(new Date(start), "MMM d")} – ${format(new Date(end), "MMM d")} · ${pax} guest${pax > 1 ? "s" : ""}`}
                     cards={[
-                      { label: "Booking.com", description: "World's largest accommodation platform with free cancellation options.", url: bookingComUrl(dest, start, end, pax), color: "#003580" },
-                      { label: "Airbnb", description: "Unique homes, apartments and private rooms from local hosts.", url: airbnbHotelsUrl(dest, start, end, pax), color: "#ff5a5f" },
-                      { label: "Hotels.com", description: "Earn reward nights and access member-only deals.", url: hotelsComUrl(dest, start, end, pax), color: "#c00" },
-                      { label: "Expedia", description: "Bundle hotel + flight for extra savings on your whole trip.", url: expediaHotelsUrl(dest, start, end, pax), color: "#1d3d6e" },
+                      { label: "Booking.com", description: `Search ${hotelName ?? `recommended stays in ${dest}`} with free cancellation options.`, url: bookingComUrl(dest, start, end, pax, hotelName), color: "#003580" },
+                      { label: "Airbnb", description: `Find homes and rooms near ${hotelName ?? dest}.`, url: airbnbHotelsUrl(dest, start, end, pax, hotelName), color: "#ff5a5f" },
+                      { label: "Hotels.com", description: `Compare rooms near ${hotelName ?? dest} and earn reward nights.`, url: hotelsComUrl(dest, start, end, pax, hotelName), color: "#c00" },
+                      { label: "Expedia", description: `Search ${hotelName ?? `hotels in ${dest}`} and bundle with flights.`, url: expediaHotelsUrl(dest, start, end, pax, hotelName), color: "#1d3d6e" },
                     ]}
                   />
 
@@ -450,10 +454,10 @@ export default function ItineraryView() {
                     title="Restaurants & Cafes"
                     subtitle={`Dining in ${dest} — browse reviews, menus and reserve a table`}
                     cards={[
-                      { label: "Yelp", description: "Reviews, photos, and menus for restaurants and cafes near you.", url: yelpRestaurantsUrl(dest), color: "#d32323" },
-                      { label: "OpenTable", description: "Reserve a table at the best restaurants in real time.", url: openTableUrl(dest, start, pax), color: "#da3743" },
-                      { label: "TripAdvisor", description: "Millions of traveller reviews to find the top-rated local spots.", url: tripadvisorRestaurantsUrl(dest), color: "#00af87" },
-                      { label: "Google Maps", description: "Explore every café, restaurant and bar on an interactive map.", url: googleMapsRestaurantsUrl(dest), color: "#4285f4" },
+                      { label: "Yelp", description: `Reviews and menus for ${restaurantName ?? `restaurants in ${dest}`}.`, url: yelpRestaurantsUrl(dest, restaurantName ?? "restaurants"), color: "#d32323" },
+                      { label: "OpenTable", description: `Reserve ${restaurantName ?? "a restaurant"} for your party of ${pax}.`, url: openTableUrl(dest, start, pax, restaurantName), color: "#da3743" },
+                      { label: "TripAdvisor", description: `Traveller reviews for ${restaurantName ?? `top spots in ${dest}`}.`, url: tripadvisorRestaurantsUrl(dest, restaurantName), color: "#00af87" },
+                      { label: "Google Maps", description: `Open ${restaurantName ?? `cafes and restaurants in ${dest}`} in Maps.`, url: googleMapsRestaurantsUrl(dest, restaurantName ?? "restaurants"), color: "#4285f4" },
                     ]}
                   />
 
@@ -463,10 +467,10 @@ export default function ItineraryView() {
                     title="Experiences & Activities"
                     subtitle={`Things to do in ${dest} with instant booking`}
                     cards={[
-                      { label: "Viator", description: "Skip-the-line tickets, guided tours and unique local experiences.", url: viatorUrl(dest, start), color: "#172432" },
-                      { label: "GetYourGuide", description: "Thousands of activities, day trips and multi-day tours.", url: getYourGuideUrl(dest, start, end, pax), color: "#ff8000" },
-                      { label: "Airbnb Experiences", description: "Hands-on activities hosted by local experts.", url: airbnbExperiencesUrl(dest, start, end), color: "#ff5a5f" },
-                      { label: "Klook", description: "Discounted attraction passes and activity bundles across Asia & beyond.", url: klookUrl(dest), color: "#e8192c" },
+                      { label: "Viator", description: `Find tours for ${experienceName ?? `experiences in ${dest}`}.`, url: viatorUrl(dest, start, experienceName), color: "#172432" },
+                      { label: "GetYourGuide", description: `Book ${experienceName ?? `activities in ${dest}`} for ${pax} traveller${pax === 1 ? "" : "s"}.`, url: getYourGuideUrl(dest, start, end, pax, experienceName), color: "#ff8000" },
+                      { label: "Airbnb Experiences", description: `Browse local hosts for ${experienceName ?? `${dest} experiences`}.`, url: airbnbExperiencesUrl(dest, start, end, experienceName), color: "#ff5a5f" },
+                      { label: "Klook", description: `Search tickets and passes for ${experienceName ?? dest}.`, url: klookUrl(dest, experienceName), color: "#e8192c" },
                     ]}
                   />
 
@@ -476,9 +480,9 @@ export default function ItineraryView() {
                     title="Attractions & Sights"
                     subtitle={`Must-see landmarks and hidden gems in ${dest}`}
                     cards={[
-                      { label: "TripAdvisor", description: "Top-rated sights ranked by travellers with photos and tips.", url: tripadvisorAttractionsUrl(dest), color: "#00af87" },
-                      { label: "Google Maps", description: "Explore landmarks, museums and parks on an interactive map.", url: googleMapsAttractionsUrl(dest), color: "#4285f4" },
-                      { label: "Lonely Planet", description: "Expert-curated guide to the best sights in ${dest}.", url: lonelyPlanetUrl(dest), color: "#00aadf" },
+                      { label: "TripAdvisor", description: `Reviews and tips for ${attractionName ?? `top sights in ${dest}`}.`, url: tripadvisorAttractionsUrl(dest, attractionName), color: "#00af87" },
+                      { label: "Google Maps", description: `Open ${attractionName ?? `landmarks in ${dest}`} in Maps.`, url: googleMapsAttractionsUrl(dest, attractionName), color: "#4285f4" },
+                      { label: "Lonely Planet", description: `Expert guide to ${attractionName ?? `the best sights in ${dest}`}.`, url: lonelyPlanetUrl(dest, attractionName), color: "#00aadf" },
                       { label: "Yelp", description: "Find arts & entertainment venues with crowd-sourced reviews.", url: yelpRestaurantsUrl(dest, "arts,entertainment"), color: "#d32323" },
                     ]}
                   />

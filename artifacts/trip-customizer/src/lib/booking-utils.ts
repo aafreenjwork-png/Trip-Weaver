@@ -12,7 +12,7 @@ function slug(str: string) {
 // ─── Flights ──────────────────────────────────────────────────────────────────
 
 export function googleFlightsUrl(from: string, to: string, depart: string, returnDate: string) {
-  const q = `flights from ${from} to ${to}`;
+  const q = `round trip flights from ${from} to ${to} departing ${fmt(depart)} returning ${fmt(returnDate)}`;
   return `https://www.google.com/travel/flights?q=${encodeURIComponent(q)}&hl=en`;
 }
 
@@ -43,9 +43,9 @@ export function expediaFlightsUrl(from: string, to: string, depart: string, retu
 
 // ─── Hotels ───────────────────────────────────────────────────────────────────
 
-export function bookingComUrl(destination: string, checkin: string, checkout: string, adults: number) {
+export function bookingComUrl(destination: string, checkin: string, checkout: string, adults: number, hotelName?: string) {
   const params = new URLSearchParams({
-    ss: destination,
+    ss: hotelName ? `${hotelName}, ${destination}` : destination,
     checkin: fmt(checkin),
     checkout: fmt(checkout),
     group_adults: String(adults),
@@ -54,14 +54,14 @@ export function bookingComUrl(destination: string, checkin: string, checkout: st
   return `https://www.booking.com/search.html?${params}`;
 }
 
-export function airbnbHotelsUrl(destination: string, checkin: string, checkout: string, adults: number) {
-  const loc = slug(destination);
+export function airbnbHotelsUrl(destination: string, checkin: string, checkout: string, adults: number, hotelName?: string) {
+  const loc = slug(hotelName ? `${hotelName}, ${destination}` : destination);
   return `https://www.airbnb.com/s/${loc}/homes?checkin=${fmt(checkin)}&checkout=${fmt(checkout)}&adults=${adults}`;
 }
 
-export function hotelsComUrl(destination: string, checkin: string, checkout: string, adults: number) {
+export function hotelsComUrl(destination: string, checkin: string, checkout: string, adults: number, hotelName?: string) {
   const params = new URLSearchParams({
-    destination,
+    destination: hotelName ? `${hotelName}, ${destination}` : destination,
     startDate: fmt(checkin),
     endDate: fmt(checkout),
     adults: String(adults),
@@ -69,9 +69,9 @@ export function hotelsComUrl(destination: string, checkin: string, checkout: str
   return `https://www.hotels.com/search?${params}`;
 }
 
-export function expediaHotelsUrl(destination: string, checkin: string, checkout: string, adults: number) {
+export function expediaHotelsUrl(destination: string, checkin: string, checkout: string, adults: number, hotelName?: string) {
   const params = new URLSearchParams({
-    destination,
+    destination: hotelName ? `${hotelName}, ${destination}` : destination,
     "startDate": fmt(checkin),
     "endDate": fmt(checkout),
     adults: String(adults),
@@ -85,15 +85,15 @@ export function yelpRestaurantsUrl(destination: string, category = "restaurants"
   return `https://www.yelp.com/search?find_desc=${encodeURIComponent(category)}&find_loc=${slug(destination)}`;
 }
 
-export function tripadvisorRestaurantsUrl(destination: string) {
-  return `https://www.tripadvisor.com/Search?q=${slug(destination + " restaurants")}`;
+export function tripadvisorRestaurantsUrl(destination: string, restaurantName?: string) {
+  return `https://www.tripadvisor.com/Search?q=${slug(`${restaurantName ? restaurantName + " " : ""}restaurants in ${destination}`)}`;
 }
 
-export function openTableUrl(destination: string, date: string, covers: number) {
+export function openTableUrl(destination: string, date: string, covers: number, restaurantName?: string) {
   const params = new URLSearchParams({
     covers: String(covers),
     dateTime: `${fmt(date)} 19:00`,
-    term: destination,
+    term: restaurantName ? `${restaurantName}, ${destination}` : destination,
   });
   return `https://www.opentable.com/s?${params}`;
 }
@@ -104,13 +104,13 @@ export function googleMapsRestaurantsUrl(destination: string, query = "restauran
 
 // ─── Experiences / Activities ─────────────────────────────────────────────────
 
-export function viatorUrl(destination: string, startDate: string) {
-  return `https://www.viator.com/searchResults/all?text=${slug(destination)}&startDate=${fmt(startDate)}`;
+export function viatorUrl(destination: string, startDate: string, experienceName?: string) {
+  return `https://www.viator.com/searchResults/all?text=${slug(`${experienceName ? experienceName + " in " : ""}${destination}`)}&startDate=${fmt(startDate)}`;
 }
 
-export function getYourGuideUrl(destination: string, startDate: string, endDate: string, travelers: number) {
+export function getYourGuideUrl(destination: string, startDate: string, endDate: string, travelers: number, experienceName?: string) {
   const params = new URLSearchParams({
-    q: destination,
+    q: experienceName ? `${experienceName} in ${destination}` : destination,
     date_from: fmt(startDate),
     date_to: fmt(endDate),
     number_of_travelers: String(travelers),
@@ -118,28 +118,27 @@ export function getYourGuideUrl(destination: string, startDate: string, endDate:
   return `https://www.getyourguide.com/s/?${params}`;
 }
 
-export function airbnbExperiencesUrl(destination: string, checkin: string, checkout: string) {
+export function airbnbExperiencesUrl(destination: string, checkin: string, checkout: string, experienceName?: string) {
   const loc = slug(destination);
   return `https://www.airbnb.com/experiences?location=${loc}&checkin=${fmt(checkin)}&checkout=${fmt(checkout)}`;
 }
 
-export function klookUrl(destination: string) {
-  return `https://www.klook.com/en-US/search-results/?query=${slug(destination)}`;
+export function klookUrl(destination: string, experienceName?: string) {
+  return `https://www.klook.com/en-US/search-results/?query=${slug(experienceName ? `${experienceName} ${destination}` : destination)}`;
 }
 
 // ─── Attractions ──────────────────────────────────────────────────────────────
 
-export function tripadvisorAttractionsUrl(destination: string) {
-  return `https://www.tripadvisor.com/Search?q=${slug(destination + " attractions")}`;
+export function tripadvisorAttractionsUrl(destination: string, attractionName?: string) {
+  return `https://www.tripadvisor.com/Search?q=${slug(`${attractionName ? attractionName + " " : ""}attractions in ${destination}`)}`;
 }
 
-export function googleMapsAttractionsUrl(destination: string) {
-  return `https://www.google.com/maps/search/${encodeURIComponent("tourist attractions in " + destination)}`;
+export function googleMapsAttractionsUrl(destination: string, attractionName?: string) {
+  return `https://www.google.com/maps/search/${encodeURIComponent(`${attractionName ? attractionName + " in " : "tourist attractions in "}${destination}`)}`;
 }
 
-export function lonelyPlanetUrl(destination: string) {
-  const d = destination.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z-]/g, "");
-  return `https://www.lonelyplanet.com/search?q=${slug(destination)}`;
+export function lonelyPlanetUrl(destination: string, attractionName?: string) {
+  return `https://www.lonelyplanet.com/search?q=${slug(attractionName ? `${attractionName} ${destination}` : destination)}`;
 }
 
 // ─── Activity-level quick links ───────────────────────────────────────────────
