@@ -2,6 +2,19 @@ import { pgTable, serial, text, integer, boolean, timestamp, jsonb } from "drizz
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
+type AirportOption = {
+  name: string;
+  iataCode: string | null;
+  distanceKm: number;
+};
+
+type RoadRouteOption = {
+  status: "drivable" | "long_drive" | "not_recommended" | "unavailable";
+  distanceKm: number | null;
+  durationMinutes: number | null;
+  message: string;
+};
+
 export const tripsTable = pgTable("trips", {
   id: serial("id").primaryKey(),
   destination: text("destination").notNull(),
@@ -13,6 +26,9 @@ export const tripsTable = pgTable("trips", {
   groupSize: integer("group_size").notNull().default(1),
   constraints: text("constraints"),
   travelingFrom: text("traveling_from"),
+  destinationAirport: text("destination_airport"),
+  nearestAirports: jsonb("nearest_airports").$type<AirportOption[]>().notNull().default([]),
+  roadRoute: jsonb("road_route").$type<RoadRouteOption | null>(),
   currency: text("currency").notNull().default("USD"),
   hotelStars: integer("hotel_stars").notNull().default(3),
   hasItinerary: boolean("has_itinerary").notNull().default(false),

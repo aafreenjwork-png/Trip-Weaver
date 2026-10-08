@@ -1,0 +1,1 @@
+- [Airport and road-route data](location-data.md) — use scheduled-service airport data for airport choices and routing data for road distances.

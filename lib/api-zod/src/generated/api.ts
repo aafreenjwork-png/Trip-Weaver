@@ -18,12 +18,54 @@ export const HealthCheckResponse = zod.object({
 
 
 /**
+ * @summary Find nearby airports and estimate a driving route
+ */
+export const getRouteOptionsQueryDestinationMin = 2;
+
+export const getRouteOptionsQueryOriginMin = 2;
+
+
+
+export const GetRouteOptionsQueryParams = zod.object({
+  "destination": zod.coerce.string().min(getRouteOptionsQueryDestinationMin),
+  "origin": zod.coerce.string().min(getRouteOptionsQueryOriginMin)
+})
+
+export const GetRouteOptionsResponse = zod.object({
+  "airports": zod.array(zod.object({
+  "name": zod.string(),
+  "iataCode": zod.string().nullable(),
+  "distanceKm": zod.number()
+})),
+  "airportMessage": zod.string().nullable(),
+  "roadRoute": zod.object({
+  "status": zod.enum(['drivable', 'long_drive', 'not_recommended', 'unavailable']),
+  "distanceKm": zod.number().nullable(),
+  "durationMinutes": zod.number().nullable(),
+  "message": zod.string()
+})
+})
+
+
+/**
  * @summary List all trips
  */
 export const ListTripsResponseItem = zod.object({
   "id": zod.number(),
   "destination": zod.string(),
   "travelingFrom": zod.string().nullish(),
+  "destinationAirport": zod.string().nullish(),
+  "nearestAirports": zod.array(zod.object({
+  "name": zod.string(),
+  "iataCode": zod.string().nullable(),
+  "distanceKm": zod.number()
+})),
+  "roadRoute": zod.union([zod.object({
+  "status": zod.enum(['drivable', 'long_drive', 'not_recommended', 'unavailable']),
+  "distanceKm": zod.number().nullable(),
+  "durationMinutes": zod.number().nullable(),
+  "message": zod.string()
+}),zod.null()]),
   "startDate": zod.string(),
   "endDate": zod.string(),
   "budget": zod.string(),
@@ -50,6 +92,18 @@ export const createTripBodyHotelStarsMax = 5;
 export const CreateTripBody = zod.object({
   "destination": zod.string(),
   "travelingFrom": zod.string().nullish(),
+  "destinationAirport": zod.string().nullish(),
+  "nearestAirports": zod.array(zod.object({
+  "name": zod.string(),
+  "iataCode": zod.string().nullable(),
+  "distanceKm": zod.number()
+})).optional(),
+  "roadRoute": zod.union([zod.object({
+  "status": zod.enum(['drivable', 'long_drive', 'not_recommended', 'unavailable']),
+  "distanceKm": zod.number().nullable(),
+  "durationMinutes": zod.number().nullable(),
+  "message": zod.string()
+}),zod.null()]).optional(),
   "startDate": zod.string(),
   "endDate": zod.string(),
   "budget": zod.enum(['budget', 'moderate', 'luxury']),
@@ -73,6 +127,18 @@ export const GetTripResponse = zod.object({
   "id": zod.number(),
   "destination": zod.string(),
   "travelingFrom": zod.string().nullish(),
+  "destinationAirport": zod.string().nullish(),
+  "nearestAirports": zod.array(zod.object({
+  "name": zod.string(),
+  "iataCode": zod.string().nullable(),
+  "distanceKm": zod.number()
+})),
+  "roadRoute": zod.union([zod.object({
+  "status": zod.enum(['drivable', 'long_drive', 'not_recommended', 'unavailable']),
+  "distanceKm": zod.number().nullable(),
+  "durationMinutes": zod.number().nullable(),
+  "message": zod.string()
+}),zod.null()]),
   "startDate": zod.string(),
   "endDate": zod.string(),
   "budget": zod.string(),
@@ -102,6 +168,18 @@ export const updateTripBodyHotelStarsMax = 5;
 export const UpdateTripBody = zod.object({
   "destination": zod.string().optional(),
   "travelingFrom": zod.string().nullish(),
+  "destinationAirport": zod.string().nullish(),
+  "nearestAirports": zod.array(zod.object({
+  "name": zod.string(),
+  "iataCode": zod.string().nullable(),
+  "distanceKm": zod.number()
+})).optional(),
+  "roadRoute": zod.union([zod.object({
+  "status": zod.enum(['drivable', 'long_drive', 'not_recommended', 'unavailable']),
+  "distanceKm": zod.number().nullable(),
+  "durationMinutes": zod.number().nullable(),
+  "message": zod.string()
+}),zod.null()]).optional(),
   "startDate": zod.string().optional(),
   "endDate": zod.string().optional(),
   "budget": zod.enum(['budget', 'moderate', 'luxury']).optional(),
@@ -117,6 +195,18 @@ export const UpdateTripResponse = zod.object({
   "id": zod.number(),
   "destination": zod.string(),
   "travelingFrom": zod.string().nullish(),
+  "destinationAirport": zod.string().nullish(),
+  "nearestAirports": zod.array(zod.object({
+  "name": zod.string(),
+  "iataCode": zod.string().nullable(),
+  "distanceKm": zod.number()
+})),
+  "roadRoute": zod.union([zod.object({
+  "status": zod.enum(['drivable', 'long_drive', 'not_recommended', 'unavailable']),
+  "distanceKm": zod.number().nullable(),
+  "durationMinutes": zod.number().nullable(),
+  "message": zod.string()
+}),zod.null()]),
   "startDate": zod.string(),
   "endDate": zod.string(),
   "budget": zod.string(),

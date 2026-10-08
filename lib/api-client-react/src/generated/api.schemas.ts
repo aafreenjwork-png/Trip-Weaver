@@ -13,6 +13,39 @@ export interface ErrorResponse {
   error: string;
 }
 
+export interface AirportOption {
+  name: string;
+  /** @nullable */
+  iataCode: string | null;
+  distanceKm: number;
+}
+
+export type RoadRouteOptionStatus = typeof RoadRouteOptionStatus[keyof typeof RoadRouteOptionStatus];
+
+
+export const RoadRouteOptionStatus = {
+  drivable: 'drivable',
+  long_drive: 'long_drive',
+  not_recommended: 'not_recommended',
+  unavailable: 'unavailable',
+} as const;
+
+export interface RoadRouteOption {
+  status: RoadRouteOptionStatus;
+  /** @nullable */
+  distanceKm: number | null;
+  /** @nullable */
+  durationMinutes: number | null;
+  message: string;
+}
+
+export interface RouteOptionsResponse {
+  airports: AirportOption[];
+  /** @nullable */
+  airportMessage: string | null;
+  roadRoute: RoadRouteOption;
+}
+
 export type TripInputBudget = typeof TripInputBudget[keyof typeof TripInputBudget];
 
 
@@ -38,6 +71,10 @@ export interface TripInput {
   destination: string;
   /** @nullable */
   travelingFrom?: string | null;
+  /** @nullable */
+  destinationAirport?: string | null;
+  nearestAirports?: AirportOption[];
+  roadRoute?: RoadRouteOption | null;
   startDate: string;
   endDate: string;
   budget: TripInputBudget;
@@ -79,6 +116,10 @@ export interface TripUpdate {
   destination?: string;
   /** @nullable */
   travelingFrom?: string | null;
+  /** @nullable */
+  destinationAirport?: string | null;
+  nearestAirports?: AirportOption[];
+  roadRoute?: RoadRouteOption | null;
   startDate?: string;
   endDate?: string;
   budget?: TripUpdateBudget;
@@ -100,6 +141,10 @@ export interface Trip {
   destination: string;
   /** @nullable */
   travelingFrom?: string | null;
+  /** @nullable */
+  destinationAirport?: string | null;
+  nearestAirports: AirportOption[];
+  roadRoute: RoadRouteOption | null;
   startDate: string;
   endDate: string;
   budget: string;
@@ -224,4 +269,15 @@ export interface TripStats {
   budgetBreakdown: TripStatsBudgetBreakdown;
   styleBreakdown: TripStatsStyleBreakdown;
 }
+
+export type GetRouteOptionsParams = {
+/**
+ * @minLength 2
+ */
+destination: string;
+/**
+ * @minLength 2
+ */
+origin: string;
+};
 

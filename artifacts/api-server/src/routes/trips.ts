@@ -69,6 +69,9 @@ router.post("/trips", async (req, res) => {
     const [trip] = await db.insert(tripsTable).values({
       destination: parsed.data.destination,
       travelingFrom: parsed.data.travelingFrom ?? null,
+      destinationAirport: parsed.data.destinationAirport ?? null,
+      nearestAirports: parsed.data.nearestAirports ?? [],
+      roadRoute: parsed.data.roadRoute ?? null,
       startDate: parsed.data.startDate,
       endDate: parsed.data.endDate,
       budget: parsed.data.budget,
@@ -119,6 +122,9 @@ router.patch("/trips/:id", async (req, res) => {
     const b = bodyParsed.data;
     if (b.destination !== undefined) updates.destination = b.destination;
     if (b.travelingFrom !== undefined) updates.travelingFrom = b.travelingFrom;
+    if (b.destinationAirport !== undefined) updates.destinationAirport = b.destinationAirport;
+    if (b.nearestAirports !== undefined) updates.nearestAirports = b.nearestAirports;
+    if (b.roadRoute !== undefined) updates.roadRoute = b.roadRoute;
     if (b.startDate !== undefined) updates.startDate = b.startDate;
     if (b.endDate !== undefined) updates.endDate = b.endDate;
     if (b.budget !== undefined) updates.budget = b.budget;

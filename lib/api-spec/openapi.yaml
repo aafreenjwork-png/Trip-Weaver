@@ -13,6 +13,8 @@ tags:
     description: Trip management
   - name: itineraries
     description: Itinerary generation and management
+  - name: locations
+    description: Nearby airports and route planning
 
 paths:
   /healthz:
@@ -28,6 +30,44 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /locations/route-options:
+    get:
+      operationId: getRouteOptions
+      tags: [locations]
+      summary: Find nearby airports and estimate a driving route
+      parameters:
+        - name: destination
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+        - name: origin
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 2
+      responses:
+        "200":
+          description: Nearby airports and road-route assessment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteOptionsResponse"
+        "400":
+          description: Missing or invalid locations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Location data provider unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /trips:
     get:
@@ -245,6 +285,44 @@ components:
       required:
         - error
 
+    AirportOption:
+      type: object
+      properties:
+        name:
+          type: string
+        iataCode:
+          type: ["string", "null"]
+        distanceKm:
+          type: number
+      required: [name, iataCode, distanceKm]
+
+    RoadRouteOption:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [drivable, long_drive, not_recommended, unavailable]
+        distanceKm:
+          type: ["number", "null"]
+        durationMinutes:
+          type: ["integer", "null"]
+        message:
+          type: string
+      required: [status, distanceKm, durationMinutes, message]
+
+    RouteOptionsResponse:
+      type: object
+      properties:
+        airports:
+          type: array
+          items:
+            $ref: "#/components/schemas/AirportOption"
+        airportMessage:
+          type: ["string", "null"]
+        roadRoute:
+          $ref: "#/components/schemas/RoadRouteOption"
+      required: [airports, airportMessage, roadRoute]
+
     TripInput:
       type: object
       required:
@@ -259,6 +337,16 @@ components:
           type: string
         travelingFrom:
           type: ["string", "null"]
+        destinationAirport:
+          type: ["string", "null"]
+        nearestAirports:
+          type: array
+          items:
+            $ref: "#/components/schemas/AirportOption"
+        roadRoute:
+          anyOf:
+            - $ref: "#/components/schemas/RoadRouteOption"
+            - type: "null"
         startDate:
           type: string
         endDate:
@@ -291,6 +379,16 @@ components:
           type: string
         travelingFrom:
           type: ["string", "null"]
+        destinationAirport:
+          type: ["string", "null"]
+        nearestAirports:
+          type: array
+          items:
+            $ref: "#/components/schemas/AirportOption"
+        roadRoute:
+          anyOf:
+            - $ref: "#/components/schemas/RoadRouteOption"
+            - type: "null"
         startDate:
           type: string
         endDate:
@@ -328,6 +426,8 @@ components:
         - groupSize
         - currency
         - hotelStars
+        - nearestAirports
+        - roadRoute
         - createdAt
         - updatedAt
       properties:
@@ -337,6 +437,16 @@ components:
           type: string
         travelingFrom:
           type: ["string", "null"]
+        destinationAirport:
+          type: ["string", "null"]
+        nearestAirports:
+          type: array
+          items:
+            $ref: "#/components/schemas/AirportOption"
+        roadRoute:
+          anyOf:
+            - $ref: "#/components/schemas/RoadRouteOption"
+            - type: "null"
         startDate:
           type: string
         endDate:

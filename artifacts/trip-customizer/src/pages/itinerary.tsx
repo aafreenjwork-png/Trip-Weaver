@@ -84,6 +84,14 @@ export default function ItineraryView() {
 
   if (!trip || !itinerary) return null;
 
+  const flightDestination =
+    trip.nearestAirports.find(
+      (airport) =>
+        airport.iataCode &&
+        trip.destinationAirport === `${airport.name} (${airport.iataCode})`,
+    )?.iataCode ??
+    trip.destinationAirport ??
+    trip.destination;
   const sym = getCurrencySymbol(trip.currency);
   const bgImage = getDestinationImageUrl(trip.destination);
 
@@ -250,8 +258,8 @@ export default function ItineraryView() {
                                 <a href={airbnbHotelsUrl(trip.destination, trip.startDate, trip.endDate, trip.groupSize)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#ff5a5f]/10 text-[#ff5a5f] hover:bg-[#ff5a5f]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Airbnb</a>
                               </>)}
                               {activity.type === 'transport' && trip.travelingFrom && (<>
-                                <a href={googleFlightsUrl(trip.travelingFrom, trip.destination, trip.startDate, trip.endDate)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#4285f4]/10 text-[#4285f4] hover:bg-[#4285f4]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Google Flights</a>
-                                <a href={skyscannerFlightsUrl(trip.travelingFrom, trip.destination, trip.startDate, trip.endDate, trip.groupSize)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#0770e3]/10 text-[#0770e3] hover:bg-[#0770e3]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Skyscanner</a>
+                                <a href={googleFlightsUrl(trip.travelingFrom, flightDestination, trip.startDate, trip.endDate)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#4285f4]/10 text-[#4285f4] hover:bg-[#4285f4]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Google Flights</a>
+                                <a href={skyscannerFlightsUrl(trip.travelingFrom, flightDestination, trip.startDate, trip.endDate, trip.groupSize)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-[#0770e3]/10 text-[#0770e3] hover:bg-[#0770e3]/20 transition-colors font-medium"><ExternalLink className="w-3 h-3" />Skyscanner</a>
                               </>)}
                             </div>
                           </div>
@@ -376,6 +384,14 @@ export default function ItineraryView() {
               const end = trip.endDate;
               const pax = trip.groupSize;
               const from = (trip as typeof trip & { travelingFrom?: string | null }).travelingFrom;
+              const flightDestination =
+                trip.nearestAirports.find(
+                  (airport) =>
+                    airport.iataCode &&
+                    trip.destinationAirport === `${airport.name} (${airport.iataCode})`,
+                )?.iataCode ??
+                trip.destinationAirport ??
+                dest;
               const hotelName = itinerary.hotels[0]?.name;
               const restaurantName = itinerary.restaurants[0]?.name;
               const experienceName = itinerary.suggestedExperiences?.[0]?.title;
@@ -424,13 +440,13 @@ export default function ItineraryView() {
                   {from && (
                     <Section
                       icon={<Plane className="w-5 h-5" />}
-                      title="Flights"
-                      subtitle={`${from} → ${dest} · ${format(new Date(start), "MMM d")} return ${format(new Date(end), "MMM d")}`}
+                       title="Flights"
+                       subtitle={`${from} → ${flightDestination} · ${format(new Date(start), "MMM d")} return ${format(new Date(end), "MMM d")}`}
                       cards={[
-                        { label: "Google Flights", description: "Compare fares across all airlines with price tracking and flexible date search.", url: googleFlightsUrl(from, dest, start, end), color: "#4285f4" },
-                        { label: "Skyscanner", description: "Find the cheapest flights with one-way, return and multi-city options.", url: skyscannerFlightsUrl(from, dest, start, end, pax), color: "#0770e3" },
-                        { label: "Kayak", description: "Search hundreds of travel sites at once and set price alerts.", url: kayakFlightsUrl(from, dest, start, end, pax), color: "#ff690f" },
-                        { label: "Expedia", description: "Bundle flights with hotels for extra savings and package deals.", url: expediaFlightsUrl(from, dest, start, end, pax), color: "#1d3d6e" },
+                         { label: "Google Flights", description: "Compare fares across all airlines with price tracking and flexible date search.", url: googleFlightsUrl(from, flightDestination, start, end), color: "#4285f4" },
+                         { label: "Skyscanner", description: "Find the cheapest flights with one-way, return and multi-city options.", url: skyscannerFlightsUrl(from, flightDestination, start, end, pax), color: "#0770e3" },
+                         { label: "Kayak", description: "Search hundreds of travel sites at once and set price alerts.", url: kayakFlightsUrl(from, flightDestination, start, end, pax), color: "#ff690f" },
+                         { label: "Expedia", description: "Bundle flights with hotels for extra savings and package deals.", url: expediaFlightsUrl(from, flightDestination, start, end, pax), color: "#1d3d6e" },
                       ]}
                     />
                   )}

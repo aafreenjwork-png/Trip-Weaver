@@ -5,6 +5,8 @@
  * AI Trip Customizer API
  * OpenAPI spec version: 0.1.0
  */
+import type { AirportOption } from './airportOption';
+import type { RoadRouteOption } from './roadRouteOption';
 import type { TripUpdateBudget } from './tripUpdateBudget';
 import type { TripUpdateTravelStyle } from './tripUpdateTravelStyle';
 
@@ -12,6 +14,10 @@ export interface TripUpdate {
   destination?: string;
   /** @nullable */
   travelingFrom?: string | null;
+  /** @nullable */
+  destinationAirport?: string | null;
+  nearestAirports?: AirportOption[];
+  roadRoute?: RoadRouteOption | null;
   startDate?: string;
   endDate?: string;
   budget?: TripUpdateBudget;

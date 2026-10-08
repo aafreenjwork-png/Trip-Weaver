@@ -21,9 +21,11 @@ import type {
 
 import type {
   ErrorResponse,
+  GetRouteOptionsParams,
   HealthStatus,
   Itinerary,
   ItineraryUpdate,
+  RouteOptionsResponse,
   Trip,
   TripInput,
   TripStats,
@@ -108,6 +110,90 @@ export function useHealthCheck<TData = Awaited<ReturnType<typeof healthCheck>>, 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getHealthCheckQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRouteOptionsUrl = (params: GetRouteOptionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/locations/route-options?${stringifiedParams}` : `/api/locations/route-options`
+}
+
+/**
+ * @summary Find nearby airports and estimate a driving route
+ */
+export const getRouteOptions = async (params: GetRouteOptionsParams, options?: RequestInit): Promise<RouteOptionsResponse> => {
+
+  return customFetch<RouteOptionsResponse>(getGetRouteOptionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRouteOptionsQueryKey = (params?: GetRouteOptionsParams,) => {
+    return [
+    `/api/locations/route-options`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetRouteOptionsQueryOptions = <TData = Awaited<ReturnType<typeof getRouteOptions>>, TError = ErrorType<ErrorResponse>>(params: GetRouteOptionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRouteOptions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRouteOptionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRouteOptions>>> = ({ signal }) => getRouteOptions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRouteOptions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRouteOptionsQueryResult = NonNullable<Awaited<ReturnType<typeof getRouteOptions>>>
+export type GetRouteOptionsQueryError = ErrorType<ErrorResponse>
+
+
+/**
+ * @summary Find nearby airports and estimate a driving route
+ */
+
+export function useGetRouteOptions<TData = Awaited<ReturnType<typeof getRouteOptions>>, TError = ErrorType<ErrorResponse>>(
+ params: GetRouteOptionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRouteOptions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRouteOptionsQueryOptions(params,options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

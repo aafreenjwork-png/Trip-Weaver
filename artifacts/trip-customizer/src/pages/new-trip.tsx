@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Layout } from "@/components/layout";
-import { useCreateTrip } from "@workspace/api-client-react";
+import {
+  useCreateTrip,
+  useGetRouteOptions,
+  getGetRouteOptionsQueryKey,
+  type AirportOption,
+} from "@workspace/api-client-react";
 import { useLocation } from "wouter";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -10,11 +15,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, ArrowLeft, Loader2, MapPin, Calendar, Users, Star, Plane } from "lucide-react";
+import { ArrowRight, ArrowLeft, Loader2, MapPin, Calendar, Users, Star, Plane, CarFront, Clock } from "lucide-react";
 import { toast } from "sonner";
 
 const BUDGET_OPTIONS = ["budget", "moderate", "luxury"] as const;
 const STYLE_OPTIONS = ["adventure", "cultural", "relaxation", "business", "family", "romantic"] as const;
+
+function formatAirportLabel(airport: AirportOption) {
+  return airport.iataCode ? `${airport.name} (${airport.iataCode})` : airport.name;
+}
 
 const CURRENCIES = [
   { code: "USD", label: "USD – US Dollar" },
@@ -42,6 +51,7 @@ const CURRENCIES = [
 const formSchema = z.object({
   destination: z.string().min(2, "Destination is required"),
   travelingFrom: z.string().min(2, "Origin city is required"),
+  destinationAirport: z.string().nullable().optional(),
   currency: z.string().default("USD"),
   startDate: z.string().min(1, "Start date is required"),
   endDate: z.string().min(1, "End date is required"),
@@ -69,6 +79,7 @@ export default function NewTrip() {
     defaultValues: {
       destination: "",
       travelingFrom: "",
+      destinationAirport: null,
       currency: "USD",
       startDate: "",
       endDate: "",
@@ -81,9 +92,66 @@ export default function NewTrip() {
     },
   });
 
+  const destination = form.watch("destination")?.trim() ?? "";
+  const origin = form.watch("travelingFrom")?.trim() ?? "";
+  const [routeLookup, setRouteLookup] = useState<{ destination: string; origin: string } | null>(null);
+  const lookupMatchesCurrent = Boolean(
+    routeLookup && routeLookup.destination === destination && routeLookup.origin === origin,
+  );
+  const routeOptionsQuery = useGetRouteOptions(
+    routeLookup ?? { destination: "", origin: "" },
+    {
+      query: {
+        enabled: lookupMatchesCurrent,
+        retry: false,
+        queryKey: getGetRouteOptionsQueryKey(
+          routeLookup ?? { destination: "", origin: "" },
+        ),
+      },
+    },
+  );
+  const routeOptions = lookupMatchesCurrent ? routeOptionsQuery.data : undefined;
+
+  useEffect(() => {
+    if (!lookupMatchesCurrent || !routeOptions) return;
+    const selectedAirport = form.getValues("destinationAirport");
+    const selectedAirportIsNearby = routeOptions.airports.some(
+      (airport) => formatAirportLabel(airport) === selectedAirport,
+    );
+    if (!selectedAirportIsNearby) {
+      form.setValue(
+        "destinationAirport",
+        routeOptions.airports.length ? formatAirportLabel(routeOptions.airports[0]) : null,
+        { shouldDirty: true },
+      );
+    }
+  }, [form, lookupMatchesCurrent, routeOptions]);
+
+  const searchRoutes = () => {
+    if (lookupMatchesCurrent) {
+      void routeOptionsQuery.refetch();
+      return;
+    }
+    form.setValue("destinationAirport", null);
+    setRouteLookup({ destination, origin });
+  };
+
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const savedRouteOptions = lookupMatchesCurrent ? routeOptionsQuery.data : undefined;
+    const selectedAirport = savedRouteOptions?.airports.some(
+      (airport) => formatAirportLabel(airport) === values.destinationAirport,
+    )
+      ? values.destinationAirport
+      : null;
     createTrip.mutate(
-      { data: values },
+      {
+        data: {
+          ...values,
+          destinationAirport: selectedAirport,
+          nearestAirports: savedRouteOptions?.airports ?? [],
+          roadRoute: savedRouteOptions?.roadRoute ?? null,
+        },
+      },
       {
         onSuccess: (data) => {
           toast.success("Journey canvas created.");
@@ -177,6 +245,143 @@ export default function NewTrip() {
                           </FormItem>
                         )}
                       />
+                    </div>
+
+                    <div className="space-y-3">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={searchRoutes}
+                        disabled={destination.length < 2 || origin.length < 2 || routeOptionsQuery.isFetching}
+                        className="rounded-xl"
+                      >
+                        {routeOptionsQuery.isFetching ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <MapPin className="mr-2 h-4 w-4" />
+                        )}
+                        {lookupMatchesCurrent && routeOptionsQuery.isError
+                          ? "Try airport and road search again"
+                          : "Find nearby airports & road options"}
+                      </Button>
+                      <p className="text-sm text-muted-foreground">
+                        Compare nearby airports and check the actual driving distance from your starting point.
+                      </p>
+
+                      {lookupMatchesCurrent && routeOptionsQuery.isError && (
+                        <p role="alert" className="text-sm text-destructive">
+                          {routeOptionsQuery.error instanceof Error
+                            ? routeOptionsQuery.error.message
+                            : "Nearby airports and road options could not be loaded. You can try again or continue planning."}
+                        </p>
+                      )}
+
+                      {routeOptions && (
+                        <div className="space-y-4 rounded-2xl border border-border bg-muted/30 p-5">
+                          <section aria-labelledby="nearby-airports-title" className="space-y-3">
+                            <div>
+                              <h3 id="nearby-airports-title" className="font-serif text-lg font-semibold">
+                                Nearest airports to {destination}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                Choose the arrival airport for your Day 1 flight.
+                              </p>
+                            </div>
+                            {routeOptions.airports.length ? (
+                              <FormField
+                                control={form.control}
+                                name="destinationAirport"
+                                render={({ field }) => (
+                                  <FormItem className="space-y-2">
+                                    {routeOptions.airports.map((airport) => {
+                                      const airportLabel = formatAirportLabel(airport);
+                                      const isSelected = field.value === airportLabel;
+                                      return (
+                                        <FormItem key={`${airportLabel}-${airport.distanceKm}`}>
+                                          <FormControl>
+                                            <label
+                                              className={`flex cursor-pointer items-center gap-3 rounded-xl border bg-background p-3 transition-colors ${
+                                                isSelected
+                                                  ? "border-primary ring-1 ring-primary"
+                                                  : "border-border hover:border-primary/50"
+                                              }`}
+                                            >
+                                              <input
+                                                type="radio"
+                                                name={field.name}
+                                                value={airportLabel}
+                                                checked={isSelected}
+                                                onBlur={field.onBlur}
+                                                ref={field.ref}
+                                                onChange={() => field.onChange(airportLabel)}
+                                                className="h-4 w-4 accent-primary"
+                                              />
+                                              <span className="flex-1 font-medium">{airportLabel}</span>
+                                              <span className="text-sm text-muted-foreground">
+                                                {airport.distanceKm.toLocaleString()} km away
+                                              </span>
+                                            </label>
+                                          </FormControl>
+                                        </FormItem>
+                                      );
+                                    })}
+                                  </FormItem>
+                                )}
+                              />
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                {routeOptions.airportMessage ?? "No nearby airports were found."}
+                              </p>
+                            )}
+                          </section>
+
+                          <section
+                            aria-labelledby="road-option-title"
+                            className="flex items-start gap-3 border-t border-border pt-4"
+                          >
+                            {routeOptions.roadRoute.status === "unavailable" ? (
+                              <MapPin className="mt-0.5 h-5 w-5 text-muted-foreground" />
+                            ) : (
+                              <CarFront className="mt-0.5 h-5 w-5 text-primary" />
+                            )}
+                            <div>
+                              <h3 id="road-option-title" className="font-medium">
+                                Road option from {origin}
+                              </h3>
+                              <p className="text-sm text-muted-foreground">
+                                {routeOptions.roadRoute.message}
+                              </p>
+                              {routeOptions.roadRoute.durationMinutes !== null && (
+                                <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                                  <Clock className="h-3.5 w-3.5" />
+                                  Estimated drive time; breaks and traffic can add time.
+                                </p>
+                              )}
+                            </div>
+                          </section>
+                          <p className="text-xs text-muted-foreground">
+                            Approximate airport distances use{" "}
+                            <a
+                              href="https://ourairports.com/data/"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline underline-offset-2"
+                            >
+                              OurAirports data
+                            </a>
+                            ; road estimates use{" "}
+                            <a
+                              href="https://www.openstreetmap.org/copyright"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="underline underline-offset-2"
+                            >
+                              OpenStreetMap data
+                            </a>
+                            . Drive times can vary with traffic and stops.
+                          </p>
+                        </div>
+                      )}
                     </div>
 
                     <FormField

@@ -364,16 +364,26 @@ export function generateItineraryData(trip: Trip): ItineraryData {
       // Flight from origin if specified
       const originCity = (trip as Trip & { travelingFrom?: string | null }).travelingFrom;
       if (originCity) {
+        const destinationAirport = trip.destinationAirport || trip.destination;
+        const nearbyAirportNames = trip.nearestAirports
+          .map((airport) => `${airport.name}${airport.iataCode ? ` (${airport.iataCode})` : ""} — about ${airport.distanceKm} km away`)
+          .join("; ");
+        const roadRouteNote = trip.roadRoute
+          ? ` Road option from ${originCity}: ${trip.roadRoute.message}`
+          : "";
+        const airportNote = nearbyAirportNames
+          ? ` Nearest airports to ${trip.destination}: ${nearbyAirportNames}.`
+          : "";
         const flightCostUSD = trip.budget === "luxury" ? 1100 : trip.budget === "moderate" ? 520 : 210;
         activities.push({
           time: "06:00",
-          title: `Flight: ${originCity} → ${trip.destination}`,
-          description: `Depart from ${originCity} to ${trip.destination}. Check in at least 2 hours before for domestic or 3 hours for international flights. Use this time to settle in, charge devices, and plan your first day.`,
+          title: `Take a flight from ${originCity} to ${destinationAirport}`,
+          description: `Fly from ${originCity} to ${destinationAirport}, your selected nearby airport for ${trip.destination}. Check in at least 2 hours before for domestic or 3 hours for international flights. Use this time to settle in, charge devices, and plan your first day.${airportNote}${roadRouteNote}`,
           type: "transport",
           estimatedCost: Math.round(flightCostUSD * costMult * trip.groupSize),
           duration: "Varies by route",
-          address: `${originCity} International Airport`,
-          tips: `Book return flights from ${trip.destination} in advance. Set price alerts on Google Flights for the best fares.`,
+          address: destinationAirport,
+          tips: `Book a return flight from ${destinationAirport} in advance. Set price alerts on Google Flights for the best fares.`,
           imageUrl: activityImage("transport", "flight"),
         });
       }

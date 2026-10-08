@@ -102,17 +102,23 @@ export default function TripDetail() {
   };
 
   const saveEdits = () => {
-    if (!editForm) return;
+    if (!editForm || !trip) return;
     if (editForm.startDate && editForm.endDate && new Date(editForm.endDate) <= new Date(editForm.startDate)) {
       toast.error("End date must be after start date.");
       return;
     }
+    const routeLocationsChanged =
+      editForm.destination.trim().toLocaleLowerCase() !== trip.destination.trim().toLocaleLowerCase() ||
+      editForm.travelingFrom.trim().toLocaleLowerCase() !== (trip.travelingFrom ?? "").trim().toLocaleLowerCase();
     updateTrip.mutate(
       {
         id,
         data: {
           destination: editForm.destination,
-          travelingFrom: editForm.travelingFrom || undefined,
+          travelingFrom: editForm.travelingFrom || null,
+          destinationAirport: routeLocationsChanged ? null : trip.destinationAirport,
+          nearestAirports: routeLocationsChanged ? [] : trip.nearestAirports,
+          roadRoute: routeLocationsChanged ? null : trip.roadRoute,
           startDate: editForm.startDate,
           endDate: editForm.endDate,
           budget: editForm.budget,
